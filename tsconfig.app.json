@@ -17,7 +17,9 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true,
-    "types": ["vitest/globals"]
+    "verbatimModuleSyntax": true,
+    "erasableSyntaxOnly": true,
+    "types": ["vite/client", "vitest/globals"]
   },
   "include": ["src"]
 }
