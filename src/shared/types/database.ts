@@ -3,4 +3,4 @@
 //     > src/shared/types/database.ts
 // Until then this file is a placeholder.
 
-export type Database = Record<string, never>
+export type Database = Record<string, unknown>
