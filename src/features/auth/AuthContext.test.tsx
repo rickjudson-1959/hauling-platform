@@ -21,7 +21,8 @@ vi.mock('../../shared/lib/supabase', () => ({
   },
 }))
 
-import { AuthProvider, useAuth } from './AuthContext'
+import { AuthProvider } from './AuthContext'
+import { useAuth } from './useAuth'
 
 function buildFromChain(resolvedValue: unknown) {
   const chain = {

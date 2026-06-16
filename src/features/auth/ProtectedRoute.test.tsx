@@ -7,7 +7,7 @@ const { mockUseAuth } = vi.hoisted(() => {
   return { mockUseAuth }
 })
 
-vi.mock('./AuthContext', () => ({ useAuth: () => mockUseAuth() }))
+vi.mock('./useAuth', () => ({ useAuth: () => mockUseAuth() }))
 
 import ProtectedRoute from './ProtectedRoute'
 

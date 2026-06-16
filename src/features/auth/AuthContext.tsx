@@ -1,22 +1,8 @@
-import { createContext, useContext, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import type { Session, User } from '@supabase/supabase-js'
 import { supabase } from '../../shared/lib/supabase'
-
-interface Org {
-  id: string
-  name: string
-}
-
-interface AuthContextValue {
-  session: Session | null
-  user: User | null
-  org: Org | null
-  role: string | null
-  loading: boolean
-  signOut: () => Promise<void>
-}
-
-const AuthContext = createContext<AuthContextValue | null>(null)
+import { AuthContext } from './useAuth'
+import type { Org } from './useAuth'
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null)
@@ -24,6 +10,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [org, setOrg] = useState<Org | null>(null)
   const [role, setRole] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+
+  const fetchMembership = useCallback(async (userId: string) => {
+    const { data } = (await supabase
+      .from('memberships')
+      .select('role, orgs(id, name)')
+      .eq('user_id', userId)
+      .single()) as { data: { role: string; orgs: Org } | null; error: unknown }
+
+    if (data) {
+      setRole(data.role)
+      setOrg(data.orgs as Org)
+    }
+    setLoading(false)
+  }, [])
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -49,21 +49,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     })
 
     return () => subscription.unsubscribe()
-  }, [])
-
-  async function fetchMembership(userId: string) {
-    const { data } = await supabase
-      .from('memberships')
-      .select('role, orgs(id, name)')
-      .eq('user_id', userId)
-      .single() as { data: { role: string; orgs: Org } | null; error: unknown }
-
-    if (data) {
-      setRole(data.role)
-      setOrg(data.orgs)
-    }
-    setLoading(false)
-  }
+  }, [fetchMembership])
 
   async function signOut() {
     await supabase.auth.signOut()
@@ -74,10 +60,4 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       {children}
     </AuthContext.Provider>
   )
-}
-
-export function useAuth() {
-  const ctx = useContext(AuthContext)
-  if (!ctx) throw new Error('useAuth must be used within AuthProvider')
-  return ctx
 }
