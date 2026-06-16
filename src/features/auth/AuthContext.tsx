@@ -56,11 +56,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       .from('memberships')
       .select('role, orgs(id, name)')
       .eq('user_id', userId)
-      .single()
+      .single() as { data: { role: string; orgs: Org } | null; error: unknown }
 
     if (data) {
-      setRole(data.role as string)
-      setOrg(data.orgs as Org)
+      setRole(data.role)
+      setOrg(data.orgs)
     }
     setLoading(false)
   }
