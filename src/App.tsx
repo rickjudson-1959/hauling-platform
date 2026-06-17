@@ -6,6 +6,7 @@ import SignupPage from './features/auth/SignupPage'
 import DispatchPage from './features/dispatch'
 import JobsPage from './features/jobs'
 import CustomersPage from './features/customers'
+import CustomerProfile from './features/customers/CustomerProfile'
 import TrucksPage from './features/trucks'
 import DriverPage from './features/driver'
 import InvoicingPage from './features/invoicing'
@@ -22,6 +23,7 @@ export default function App() {
           <Route path="/" element={<ProtectedRoute><DispatchPage /></ProtectedRoute>} />
           <Route path="/jobs" element={<ProtectedRoute><JobsPage /></ProtectedRoute>} />
           <Route path="/customers" element={<ProtectedRoute><CustomersPage /></ProtectedRoute>} />
+          <Route path="/customers/:id" element={<ProtectedRoute><CustomerProfile /></ProtectedRoute>} />
           <Route path="/trucks" element={<ProtectedRoute><TrucksPage /></ProtectedRoute>} />
           <Route path="/driver" element={<ProtectedRoute><DriverPage /></ProtectedRoute>} />
           <Route path="/invoicing" element={<ProtectedRoute><InvoicingPage /></ProtectedRoute>} />
