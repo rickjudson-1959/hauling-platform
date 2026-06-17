@@ -21,16 +21,16 @@ export default function App() {
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
-          <Route path="/" element={<ProtectedRoute><DispatchPage /></ProtectedRoute>} />
-          <Route path="/jobs" element={<ProtectedRoute><JobsPage /></ProtectedRoute>} />
-          <Route path="/customers" element={<ProtectedRoute><CustomersPage /></ProtectedRoute>} />
-          <Route path="/customers/:id" element={<ProtectedRoute><CustomerProfile /></ProtectedRoute>} />
-          <Route path="/trucks" element={<ProtectedRoute><TrucksPage /></ProtectedRoute>} />
+          <Route path="/" element={<ProtectedRoute staffOnly><DispatchPage /></ProtectedRoute>} />
+          <Route path="/jobs" element={<ProtectedRoute staffOnly><JobsPage /></ProtectedRoute>} />
+          <Route path="/customers" element={<ProtectedRoute staffOnly><CustomersPage /></ProtectedRoute>} />
+          <Route path="/customers/:id" element={<ProtectedRoute staffOnly><CustomerProfile /></ProtectedRoute>} />
+          <Route path="/trucks" element={<ProtectedRoute staffOnly><TrucksPage /></ProtectedRoute>} />
           <Route path="/driver" element={<ProtectedRoute><DriverPage /></ProtectedRoute>} />
           <Route path="/driver/:id" element={<ProtectedRoute><JobDetail /></ProtectedRoute>} />
-          <Route path="/invoicing" element={<ProtectedRoute><InvoicingPage /></ProtectedRoute>} />
-          <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
-          <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
+          <Route path="/invoicing" element={<ProtectedRoute staffOnly><InvoicingPage /></ProtectedRoute>} />
+          <Route path="/dashboard" element={<ProtectedRoute staffOnly><DashboardPage /></ProtectedRoute>} />
+          <Route path="/settings" element={<ProtectedRoute staffOnly><SettingsPage /></ProtectedRoute>} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>

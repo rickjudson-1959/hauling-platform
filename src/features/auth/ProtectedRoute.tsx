@@ -1,8 +1,14 @@
 import { Navigate } from 'react-router-dom'
 import { useAuth } from './useAuth'
 
-export default function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { session, loading } = useAuth()
+interface Props {
+  children: React.ReactNode
+  /** When true, drivers are redirected to /driver instead of rendered. */
+  staffOnly?: boolean
+}
+
+export default function ProtectedRoute({ children, staffOnly }: Props) {
+  const { session, role, loading } = useAuth()
 
   if (loading) {
     return (
@@ -13,6 +19,8 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
   }
 
   if (!session) return <Navigate to="/login" replace />
+
+  if (staffOnly && role === 'driver') return <Navigate to="/driver" replace />
 
   return <>{children}</>
 }
