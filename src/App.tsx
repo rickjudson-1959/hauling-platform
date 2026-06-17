@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './features/auth/AuthContext'
 import ProtectedRoute from './features/auth/ProtectedRoute'
 import LoginPage from './features/auth'
+import SignupPage from './features/auth/SignupPage'
 import DispatchPage from './features/dispatch'
 import JobsPage from './features/jobs'
 import CustomersPage from './features/customers'
@@ -17,6 +18,7 @@ export default function App() {
       <AuthProvider>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/signup" element={<SignupPage />} />
           <Route path="/" element={<ProtectedRoute><DispatchPage /></ProtectedRoute>} />
           <Route path="/jobs" element={<ProtectedRoute><JobsPage /></ProtectedRoute>} />
           <Route path="/customers" element={<ProtectedRoute><CustomersPage /></ProtectedRoute>} />
