@@ -6,11 +6,14 @@ import Layout from '../../shared/components/Layout'
 import Modal from '../../shared/components/Modal'
 
 const UNITS = [
-  { value: 'gallons', label: 'Gallons' },
-  { value: 'loads', label: 'Loads' },
-  { value: 'tons', label: 'Tons' },
-  { value: 'cubic_yards', label: 'Cubic yards' },
-  { value: 'hours', label: 'Hours' },
+  { value: 'litres',       label: 'Litres',        group: 'Metric' },
+  { value: 'cubic_metres', label: 'Cubic metres',  group: 'Metric' },
+  { value: 'tonnes',       label: 'Tonnes',        group: 'Metric' },
+  { value: 'gallons',      label: 'Gallons',       group: 'Imperial' },
+  { value: 'cubic_yards',  label: 'Cubic yards',   group: 'Imperial' },
+  { value: 'tons',         label: 'Tons',          group: 'Imperial' },
+  { value: 'loads',        label: 'Loads',         group: 'Other' },
+  { value: 'hours',        label: 'Hours',         group: 'Other' },
 ] as const
 
 type Unit = typeof UNITS[number]['value']
@@ -48,7 +51,7 @@ export default function SettingsPage() {
   }
 
   function openAdd() {
-    setDraft({ name: '', unit: 'gallons' })
+    setDraft({ name: '', unit: 'litres' })
     setFormError(null)
   }
 
@@ -204,8 +207,12 @@ export default function SettingsPage() {
                 onChange={e => setDraft(d => d && { ...d, unit: e.target.value as Unit })}
                 className="block w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                {UNITS.map(u => (
-                  <option key={u.value} value={u.value}>{u.label}</option>
+                {(['Metric', 'Imperial', 'Other'] as const).map(group => (
+                  <optgroup key={group} label={group}>
+                    {UNITS.filter(u => u.group === group).map(u => (
+                      <option key={u.value} value={u.value}>{u.label}</option>
+                    ))}
+                  </optgroup>
                 ))}
               </select>
             </div>
