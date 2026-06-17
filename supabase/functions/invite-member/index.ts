@@ -16,7 +16,15 @@ const VALID_ROLES = ['admin', 'dispatcher', 'driver']
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS })
+  try {
+    return await handle(req)
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err)
+    return json({ error: `Unexpected server error: ${msg}` }, 500)
+  }
+})
 
+async function handle(req: Request) {
   const authHeader = req.headers.get('Authorization')
   if (!authHeader) return json({ error: 'Missing authorization header' }, 401)
 
@@ -96,4 +104,4 @@ Deno.serve(async (req) => {
   if (insertError) return json({ error: insertError.message }, 500)
 
   return json({ success: true, isNew, inviteLink })
-})
+}

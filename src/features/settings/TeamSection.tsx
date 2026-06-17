@@ -81,8 +81,20 @@ export default function TeamSection() {
       },
     })
 
-    if (error || data?.error) {
-      setInviteError(data?.error ?? error?.message ?? 'Invite failed')
+    if (error) {
+      // supabase.functions.invoke sets error on non-2xx; the JSON body is in error.context
+      let msg = 'Invite failed'
+      try {
+        const body = await (error as unknown as { context?: Response }).context?.json()
+        if (typeof body?.error === 'string') msg = body.error
+      } catch { /* body wasn't JSON — keep generic message */ }
+      setInviteError(msg)
+      setInviting(false)
+      return
+    }
+
+    if (data?.error) {
+      setInviteError(data.error)
       setInviting(false)
       return
     }
