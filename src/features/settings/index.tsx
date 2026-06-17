@@ -4,6 +4,7 @@ import { orgQuery } from '../../shared/utils/db'
 import { useAuth } from '../auth/useAuth'
 import Layout from '../../shared/components/Layout'
 import Modal from '../../shared/components/Modal'
+import TeamSection from './TeamSection'
 
 const UNITS = [
   { value: 'litres',       label: 'Litres',        group: 'Metric' },
@@ -174,6 +175,8 @@ export default function SettingsPage() {
             </div>
           )}
         </section>
+
+        <TeamSection />
       </div>
 
       {draft !== null && (
