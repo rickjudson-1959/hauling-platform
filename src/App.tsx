@@ -9,6 +9,7 @@ import CustomersPage from './features/customers'
 import CustomerProfile from './features/customers/CustomerProfile'
 import TrucksPage from './features/trucks'
 import DriverPage from './features/driver'
+import JobDetail from './features/driver/JobDetail'
 import InvoicingPage from './features/invoicing'
 import DashboardPage from './features/dashboard'
 import SettingsPage from './features/settings'
@@ -26,6 +27,7 @@ export default function App() {
           <Route path="/customers/:id" element={<ProtectedRoute><CustomerProfile /></ProtectedRoute>} />
           <Route path="/trucks" element={<ProtectedRoute><TrucksPage /></ProtectedRoute>} />
           <Route path="/driver" element={<ProtectedRoute><DriverPage /></ProtectedRoute>} />
+          <Route path="/driver/:id" element={<ProtectedRoute><JobDetail /></ProtectedRoute>} />
           <Route path="/invoicing" element={<ProtectedRoute><InvoicingPage /></ProtectedRoute>} />
           <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
           <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
