@@ -32,40 +32,42 @@ export default function DashboardPage() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (org) load()
-  }, [org])
+    if (!org) return
+    let cancelled = false
 
-  async function load() {
-    setLoading(true)
-    setError(null)
+    void (async () => {
+      const [jobsRes, trucksRes, invoicesRes, driversRes] = await Promise.all([
+        orgQuery('jobs', org.id, JOB_COLS),
+        orgQuery('trucks', org.id, 'id, label'),
+        orgQuery('invoices', org.id, 'id, status, total'),
+        supabase.rpc('org_drivers'),
+      ])
+      if (cancelled) return
 
-    const [jobsRes, trucksRes, invoicesRes, driversRes] = await Promise.all([
-      orgQuery('jobs', org!.id, JOB_COLS),
-      orgQuery('trucks', org!.id, 'id, label'),
-      orgQuery('invoices', org!.id, 'id, status, total'),
-      supabase.rpc('org_drivers'),
-    ])
+      const messages = [jobsRes.error, trucksRes.error, invoicesRes.error, driversRes.error]
+        .filter((e): e is NonNullable<typeof e> => Boolean(e))
+        .map(e => e.message)
 
-    const messages = [jobsRes.error, trucksRes.error, invoicesRes.error, driversRes.error]
-      .filter((e): e is NonNullable<typeof e> => Boolean(e))
-      .map(e => e.message)
-
-    if (messages.length > 0) {
-      setError(messages.join(' · '))
-      setMetrics(null)
+      if (messages.length > 0) {
+        setError(messages.join(' · '))
+        setMetrics(null)
+      } else {
+        setError(null)
+        setMetrics(computeDashboardMetrics(
+          (jobsRes.data as DashboardJob[] | null) ?? [],
+          (invoicesRes.data as DashboardInvoice[] | null) ?? [],
+          (trucksRes.data as DashboardTruck[] | null) ?? [],
+          (driversRes.data as DriverRow[] | null) ?? [],
+          new Date(),
+        ))
+      }
       setLoading(false)
-      return
-    }
+    })()
 
-    setMetrics(computeDashboardMetrics(
-      (jobsRes.data as DashboardJob[] | null) ?? [],
-      (invoicesRes.data as DashboardInvoice[] | null) ?? [],
-      (trucksRes.data as DashboardTruck[] | null) ?? [],
-      (driversRes.data as DriverRow[] | null) ?? [],
-      new Date(),
-    ))
-    setLoading(false)
-  }
+    return () => {
+      cancelled = true
+    }
+  }, [org])
 
   return (
     <Layout>
