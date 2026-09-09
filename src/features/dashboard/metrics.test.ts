@@ -144,8 +144,8 @@ describe('computeDashboardMetrics', () => {
     const m = computeDashboardMetrics(jobs, [], [], drivers, now)
     expect(m.driverCompletions).toEqual([
       { driverId: 'drv-a', label: 'ann@example.com', count: 2 },
-      { driverId: 'gone', label: 'Unknown driver', count: 1 },
       { driverId: null, label: 'Unassigned', count: 1 },
+      { driverId: 'gone', label: 'Unknown driver', count: 1 },
       { driverId: 'drv-b', label: 'bob@example.com', count: 0 },
     ])
   })
