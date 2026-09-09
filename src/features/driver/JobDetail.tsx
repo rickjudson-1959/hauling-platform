@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { supabase } from '../../shared/lib/supabase'
+import type { TablesUpdate } from '../../shared/types/database'
 import { useAuth } from '../auth/useAuth'
 
 // ── Status config ──────────────────────────────────────────────────────────────
@@ -53,11 +54,8 @@ interface Job {
   trucks: { label: string } | null
 }
 
-const JOB_COLS = [
-  'id', 'scheduled_for', 'site_address', 'status', 'quantity', 'notes',
-  'photo_url', 'signature_url', 'org_id',
-  'customers(name)', 'haul_types(name,unit)', 'trucks(label)',
-].join(', ')
+const JOB_COLS =
+  'id, scheduled_for, site_address, status, quantity, notes, photo_url, signature_url, org_id, customers(name), haul_types(name,unit), trucks(label)'
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -248,7 +246,7 @@ export default function JobDetail() {
     }
 
     const newStatus = pendingStatus ?? job.status
-    const patch: Record<string, unknown> = {
+    const patch: TablesUpdate<'jobs'> = {
       quantity:      qty !== '' ? Number(qty) : null,
       notes:         notes.trim() || null,
       photo_url:     photoUrl,
