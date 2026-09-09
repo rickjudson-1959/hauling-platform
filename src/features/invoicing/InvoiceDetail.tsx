@@ -92,6 +92,7 @@ export default function InvoiceDetail() {
   async function transition(newStatus: string) {
     setActing(true)
     setError(null)
+    if (!id) return
     const { error: err } = await supabase.rpc('update_invoice_status', {
       p_invoice_id: id,
       p_new_status: newStatus,

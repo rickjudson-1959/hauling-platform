@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { supabase } from '../../shared/lib/supabase'
+import type { TablesUpdate } from '../../shared/types/database'
 import { orgQuery } from '../../shared/utils/db'
 import { useAuth } from '../auth/useAuth'
 import Layout from '../../shared/components/Layout'
@@ -41,11 +42,8 @@ interface Job {
   haul_types: { name: string; unit: string } | null
 }
 
-const JOB_COLS = [
-  'id', 'scheduled_for', 'site_address', 'status',
-  'quantity', 'customer_id', 'haul_type_id', 'truck_id',
-  'customers(name)', 'haul_types(name,unit)',
-].join(', ')
+const JOB_COLS =
+  'id, scheduled_for, site_address, status, quantity, customer_id, haul_type_id, truck_id, customers(name), haul_types(name,unit)'
 
 // ── Date helpers ───────────────────────────────────────────────────────────────
 
@@ -159,7 +157,7 @@ export default function DispatchBoard() {
     const newTruckId = targetKey === 'unassigned' ? null : targetKey
     if (job.truck_id === newTruckId) return
 
-    const patch: Record<string, unknown> = { truck_id: newTruckId }
+    const patch: TablesUpdate<'jobs'> = { truck_id: newTruckId }
     if (newTruckId && job.status === 'scheduled') patch.status = 'assigned'
     if (!newTruckId && job.status === 'assigned') patch.status = 'scheduled'
 
