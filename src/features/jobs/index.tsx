@@ -59,12 +59,8 @@ const BLANK: Draft = {
   truck_id: '', driver_id: '', status: 'scheduled', notes: '',
 }
 
-const JOB_COLS = [
-  'id', 'scheduled_for', 'site_address', 'status',
-  'quantity', 'price', 'notes',
-  'customer_id', 'haul_type_id', 'truck_id', 'driver_id',
-  'customers(name)', 'haul_types(name,unit)', 'trucks(label)',
-].join(', ')
+const JOB_COLS =
+  'id, scheduled_for, site_address, status, quantity, price, notes, customer_id, haul_type_id, truck_id, driver_id, customers(name), haul_types(name,unit), trucks(label)'
 
 function statusMeta(s: string) {
   return STATUSES.find(x => x.value === s) ?? STATUSES[0]
