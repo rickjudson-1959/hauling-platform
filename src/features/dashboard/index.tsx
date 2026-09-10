@@ -189,7 +189,11 @@ function GettingStarted() {
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           {HAUL_SERVICES.map(service => (
             <figure key={service.id} className="overflow-hidden rounded-xl border border-gray-100 bg-canvas">
-              <div className="h-20 bg-brand-soft" aria-hidden="true" />
+              <img
+                src={service.src}
+                alt=""
+                className="h-28 w-full object-cover"
+              />
               <figcaption className="px-3 py-2 text-sm font-medium text-gray-800">
                 {service.label}
               </figcaption>
