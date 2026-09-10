@@ -183,7 +183,7 @@ function GettingStarted() {
             Nothing on the board yet
           </h2>
           <p className="mt-1 text-sm text-gray-500">
-            Local hauling for dump, hydrovac, bin haul, and water. Add a truck and a job to start the day. The tiles below stay at zero until this organisation has data.
+            Local hauling for any truck type. Add a truck and a job to start the day. The tiles below stay at zero until this organisation has data.
           </p>
         </div>
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">

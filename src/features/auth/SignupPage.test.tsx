@@ -26,5 +26,8 @@ describe('SignupPage', () => {
     expect(screen.getByLabelText('Password')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Create account' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Sign in' })).toHaveAttribute('href', '/login')
+    expect(document.body.textContent).not.toMatch(/book a bin/i)
+    expect(document.body.textContent).not.toMatch(/roll-off/i)
+    expect(document.body.textContent).not.toMatch(/marketplace/i)
   })
 })

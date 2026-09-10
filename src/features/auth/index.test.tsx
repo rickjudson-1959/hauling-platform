@@ -33,6 +33,8 @@ describe('LoginPage', () => {
     expect(screen.getByRole('button', { name: 'Sign in' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Create an account' })).toHaveAttribute('href', '/signup')
     expect(document.body.textContent).not.toMatch(/book a bin/i)
+    expect(document.body.textContent).not.toMatch(/roll-off/i)
+    expect(document.body.textContent).not.toMatch(/marketplace/i)
     const heroSrcs = Array.from(document.querySelectorAll('img')).map(el => el.getAttribute('src') ?? '')
     expect(heroSrcs.some(src => src.includes('01-login-hero-16x9.jpg'))).toBe(true)
     expect(heroSrcs.some(src => src.includes('01b-login-hero-9x16.jpg'))).toBe(true)

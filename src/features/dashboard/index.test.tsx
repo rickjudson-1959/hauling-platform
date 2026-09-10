@@ -58,6 +58,10 @@ describe('DashboardPage', () => {
     expect(screen.getByText('Hydrovac')).toBeInTheDocument()
     expect(screen.getByText('Bin haul')).toBeInTheDocument()
     expect(screen.getByText('Water')).toBeInTheDocument()
+    expect(screen.getByText(/Local hauling for any truck type/)).toBeInTheDocument()
+    expect(document.body.textContent).not.toMatch(/book a bin/i)
+    expect(document.body.textContent).not.toMatch(/roll-off/i)
+    expect(document.body.textContent).not.toMatch(/marketplace/i)
   })
 
   it('hides the getting-started still when the org already has trucks', async () => {
