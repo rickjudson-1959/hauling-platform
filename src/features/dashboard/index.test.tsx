@@ -63,7 +63,7 @@ describe('DashboardPage', () => {
       Array.from(document.querySelectorAll('img')).some(el =>
         (el.getAttribute('src') ?? '').includes('02-dashboard-empty-state.jpg'),
       ),
-    ).toBe(true)
+    ).toBe(false)
     expect(document.body.textContent).not.toMatch(/book a bin/i)
     expect(document.body.textContent).not.toMatch(/roll-off/i)
     expect(document.body.textContent).not.toMatch(/marketplace/i)

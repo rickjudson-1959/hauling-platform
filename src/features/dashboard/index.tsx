@@ -186,11 +186,6 @@ function GettingStarted() {
             Local hauling for any truck type. Add a truck and a job to start the day. The tiles below stay at zero until this organisation has data.
           </p>
         </div>
-        <img
-          src="/brand/02-dashboard-empty-state.jpg"
-          alt=""
-          className="h-40 w-full rounded-xl object-cover"
-        />
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           {HAUL_SERVICES.map(service => (
             <figure key={service.id} className="overflow-hidden rounded-xl border border-gray-100 bg-canvas">

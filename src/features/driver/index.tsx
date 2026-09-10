@@ -74,14 +74,6 @@ export default function DriverJobList() {
       {/* Header */}
       <header className="relative overflow-hidden bg-white border-b border-gray-200 px-4 py-4 sticky top-0 z-10 pt-safe">
         <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-brand" />
-        <div className="pointer-events-none absolute inset-y-0 right-0 w-2/5">
-          <img
-            src="/brand/03-driver-header-9x16.jpg"
-            alt=""
-            className="h-full w-full object-cover object-center"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-white via-white/80 to-white/25" />
-        </div>
         <div className="relative flex items-start justify-between gap-3">
           <div>
             <p className="text-xs font-medium text-gray-400 uppercase tracking-wide">{org?.name}</p>
