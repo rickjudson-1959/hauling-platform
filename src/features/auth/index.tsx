@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../../shared/lib/supabase'
+import { homePath } from './homePath'
 
 export default function LoginPage() {
   const navigate = useNavigate()
@@ -13,22 +14,33 @@ export default function LoginPage() {
     e.preventDefault()
     setError(null)
     setLoading(true)
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
-    setLoading(false)
-    if (error) {
-      setError(error.message)
-    } else {
-      navigate('/dashboard')
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+    if (error || !data.user) {
+      setLoading(false)
+      setError(error?.message ?? 'Sign in failed.')
+      return
     }
+
+    const { data: membership } = await supabase
+      .from('memberships')
+      .select('role')
+      .eq('user_id', data.user.id)
+      .single()
+
+    setLoading(false)
+    navigate(homePath(membership?.role), { replace: true })
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <form
         onSubmit={handleSubmit}
         className="bg-white p-8 rounded-lg shadow w-full max-w-sm space-y-4"
       >
         <h1 className="text-2xl font-bold text-gray-900">Sign in</h1>
+        <p className="text-sm text-gray-600">
+          Invited to drive? Use the email your office sent. You will land on My Jobs.
+        </p>
 
         {error && (
           <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded p-2">
@@ -46,7 +58,7 @@ export default function LoginPage() {
             onChange={e => setEmail(e.target.value)}
             required
             autoComplete="email"
-            className="block w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="block w-full border border-gray-300 rounded-lg px-3 py-3.5 text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
@@ -60,14 +72,14 @@ export default function LoginPage() {
             onChange={e => setPassword(e.target.value)}
             required
             autoComplete="current-password"
-            className="block w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="block w-full border border-gray-300 rounded-lg px-3 py-3.5 text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 disabled:opacity-50 text-sm font-medium"
+          className="w-full min-h-12 bg-blue-600 text-white py-3.5 px-4 rounded-xl hover:bg-blue-700 disabled:opacity-50 text-base font-semibold"
         >
           {loading ? 'Signing in…' : 'Sign in'}
         </button>

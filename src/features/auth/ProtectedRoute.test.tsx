@@ -17,6 +17,7 @@ function renderInRouter(element: React.ReactElement) {
       <Routes>
         <Route path="/protected" element={element} />
         <Route path="/login" element={<div>Login Page</div>} />
+        <Route path="/driver" element={<div>Driver Home</div>} />
       </Routes>
     </MemoryRouter>
   )
@@ -43,5 +44,26 @@ describe('ProtectedRoute', () => {
     mockUseAuth.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
     renderInRouter(<ProtectedRoute><div>Secret</div></ProtectedRoute>)
     expect(screen.getByText('Secret')).toBeInTheDocument()
+  })
+
+  it('redirects drivers away from staff-only routes to /driver', () => {
+    mockUseAuth.mockReturnValue({
+      session: { user: { id: 'u1' } },
+      role: 'driver',
+      loading: false,
+    })
+    renderInRouter(<ProtectedRoute staffOnly><div>Dispatch</div></ProtectedRoute>)
+    expect(screen.getByText('Driver Home')).toBeInTheDocument()
+    expect(screen.queryByText('Dispatch')).not.toBeInTheDocument()
+  })
+
+  it('renders staff-only children for non-driver roles', () => {
+    mockUseAuth.mockReturnValue({
+      session: { user: { id: 'u1' } },
+      role: 'admin',
+      loading: false,
+    })
+    renderInRouter(<ProtectedRoute staffOnly><div>Dispatch</div></ProtectedRoute>)
+    expect(screen.getByText('Dispatch')).toBeInTheDocument()
   })
 })
