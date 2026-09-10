@@ -16,6 +16,7 @@ interface InviteResult {
   isNew: boolean
   inviteLink?: string
   email: string
+  role: Role
 }
 
 const ROLE_LABEL: Record<Role, string> = {
@@ -77,7 +78,7 @@ export default function TeamSection() {
       body: {
         email: inviteEmail.trim(),
         role: inviteRole,
-        redirectTo: window.location.origin,
+        redirectTo: `${window.location.origin}/set-password`,
       },
     })
 
@@ -99,7 +100,12 @@ export default function TeamSection() {
       return
     }
 
-    setResult({ isNew: data.isNew, inviteLink: data.inviteLink, email: inviteEmail.trim() })
+    setResult({
+      isNew: data.isNew,
+      inviteLink: data.inviteLink,
+      email: inviteEmail.trim(),
+      role: inviteRole,
+    })
     setInviteEmail('')
     setInviteRole('driver')
     setInviting(false)
@@ -117,7 +123,7 @@ export default function TeamSection() {
       <div>
         <h2 className="text-lg font-semibold text-gray-900">Team</h2>
         <p className="text-sm text-gray-500 mt-0.5">
-          Members of your organisation and their roles.
+          Members of your organisation and their roles. Invite a driver here so they can sign in on a phone and use My Jobs.
         </p>
       </div>
 
@@ -177,6 +183,9 @@ export default function TeamSection() {
       {isAdmin && (
         <div className="bg-white border border-gray-200 rounded-lg p-5 space-y-4">
           <h3 className="text-sm font-semibold text-gray-900">Invite someone</h3>
+          <p className="text-sm text-gray-500">
+            New people get a link to set a password. Drivers then land on My Jobs. Office screens stay in this layout.
+          </p>
           <form onSubmit={invite} className="flex flex-wrap gap-3 items-end">
             <div className="flex-1 min-w-48">
               <label className="block text-xs font-medium text-gray-600 mb-1">
@@ -226,7 +235,7 @@ export default function TeamSection() {
                     Account created for {result.email}.
                   </p>
                   <p className="text-sm text-green-700">
-                    Share this link with them — it lets them set their password and sign in:
+                    Share this link. They will set a password and sign in:
                   </p>
                   <div className="flex gap-2 items-center">
                     <input
@@ -247,6 +256,11 @@ export default function TeamSection() {
               ) : (
                 <p className="text-sm text-green-800 font-medium">
                   {result.email} has been added to your org. They can log in with their existing account.
+                </p>
+              )}
+              {result.role === 'driver' && (
+                <p className="text-sm text-green-700">
+                  They land on My Jobs after sign in. On iPhone: Safari Share, then Add to Home Screen. On Android: browser menu, then Add to Home Screen or Install app.
                 </p>
               )}
             </div>

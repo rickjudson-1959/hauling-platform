@@ -21,6 +21,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (data) {
       setRole(data.role)
       setOrg(data.orgs as Org)
+    } else {
+      setRole(null)
+      setOrg(null)
     }
     setLoading(false)
   }, [])
@@ -36,10 +39,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     })
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session)
       setUser(session?.user ?? null)
       if (session?.user) {
+        if (event === 'SIGNED_IN') setLoading(true)
         fetchMembership(session.user.id)
       } else {
         setOrg(null)

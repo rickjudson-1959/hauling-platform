@@ -3,6 +3,7 @@ import { AuthProvider } from './features/auth/AuthContext'
 import ProtectedRoute from './features/auth/ProtectedRoute'
 import LoginPage from './features/auth'
 import SignupPage from './features/auth/SignupPage'
+import SetPasswordPage from './features/auth/SetPasswordPage'
 import DispatchPage from './features/dispatch'
 import JobsPage from './features/jobs'
 import CustomersPage from './features/customers'
@@ -22,6 +23,7 @@ export default function App() {
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
+          <Route path="/set-password" element={<SetPasswordPage />} />
           <Route path="/" element={<ProtectedRoute staffOnly><DispatchPage /></ProtectedRoute>} />
           <Route path="/jobs" element={<ProtectedRoute staffOnly><JobsPage /></ProtectedRoute>} />
           <Route path="/customers" element={<ProtectedRoute staffOnly><CustomersPage /></ProtectedRoute>} />

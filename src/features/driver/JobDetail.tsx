@@ -60,11 +60,15 @@ const JOB_COLS =
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
 function formatDateTime(iso: string | null) {
-  if (!iso) return '—'
+  if (!iso) return 'Not scheduled'
   return new Date(iso).toLocaleString(undefined, {
     weekday: 'short', month: 'short', day: 'numeric',
     hour: 'numeric', minute: '2-digit',
   })
+}
+
+function mapsHref(address: string) {
+  return `https://maps.google.com/?q=${encodeURIComponent(address)}`
 }
 
 // ── Signature pad ──────────────────────────────────────────────────────────────
@@ -144,7 +148,7 @@ function SignaturePad({ onChange }: { onChange: (blob: Blob) => void }) {
       <button
         type="button"
         onClick={clear}
-        className="text-sm text-gray-500 underline"
+        className="min-h-12 px-3 py-3 text-base font-medium text-gray-600 active:text-gray-900"
       >
         Clear signature
       </button>
@@ -280,7 +284,10 @@ export default function JobDetail() {
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center gap-3">
         <p className="text-base text-gray-700">Job not found.</p>
-        <button onClick={() => navigate('/driver')} className="text-blue-600 underline text-sm">
+        <button
+          onClick={() => navigate('/driver')}
+          className="min-h-12 px-4 py-3 text-base font-semibold text-blue-700 active:bg-blue-50 rounded-xl"
+        >
           Back to my jobs
         </button>
       </div>
@@ -288,23 +295,23 @@ export default function JobDetail() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col pb-32">
+    <div className="min-h-screen bg-gray-50 flex flex-col pb-36">
 
       {/* Sticky header */}
-      <header className="bg-white border-b border-gray-200 px-4 py-3 sticky top-0 z-10 flex items-center gap-3">
+      <header className="bg-white border-b border-gray-200 px-4 py-3 sticky top-0 z-10 flex items-center gap-3 pt-safe">
         <button
           onClick={() => navigate('/driver')}
-          className="text-2xl text-gray-600 active:text-gray-900 -ml-1 pr-2"
+          className="min-h-12 min-w-12 -ml-1 text-3xl leading-none text-gray-600 active:text-gray-900 active:bg-gray-100 rounded-xl"
           aria-label="Back"
         >
           ‹
         </button>
         <div className="flex-1 min-w-0">
-          <p className="text-base font-semibold text-gray-900 truncate">
+          <p className="text-lg font-semibold text-gray-900 truncate">
             {job.customers?.name ?? 'No customer'}
           </p>
         </div>
-        <span className={`shrink-0 text-xs font-medium px-2.5 py-1 rounded-full ${STATUS_BADGE[job.status] ?? 'bg-gray-100 text-gray-600'}`}>
+        <span className={`shrink-0 text-sm font-medium px-3 py-1.5 rounded-full ${STATUS_BADGE[job.status] ?? 'bg-gray-100 text-gray-600'}`}>
           {pendingStatus ? STATUS_LABEL[pendingStatus] : STATUS_LABEL[job.status]}
         </span>
       </header>
@@ -317,7 +324,14 @@ export default function JobDetail() {
             {job.site_address && (
               <div>
                 <p className="text-xs text-gray-400">Site</p>
-                <p className="text-base text-gray-900">{job.site_address}</p>
+                <a
+                  href={mapsHref(job.site_address)}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-base text-blue-700 font-medium active:text-blue-900"
+                >
+                  {job.site_address}
+                </a>
               </div>
             )}
             <div>
@@ -350,7 +364,7 @@ export default function JobDetail() {
                     key={s.value}
                     type="button"
                     onClick={() => setPendingStatus(s.value)}
-                    className={`w-full py-4 rounded-xl text-base font-semibold transition-all ${
+                    className={`w-full min-h-14 py-5 rounded-xl text-lg font-semibold transition-all ${
                       isSelected
                         ? `${s.cls} ring-4 ring-offset-1 ring-current/30`
                         : 'bg-gray-100 text-gray-700 active:bg-gray-200'
@@ -375,7 +389,7 @@ export default function JobDetail() {
               step="any"
               placeholder="0"
               readOnly={!!isReadOnly}
-              className="flex-1 border border-gray-300 rounded-lg px-4 py-3.5 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50"
+              className="flex-1 min-h-14 border border-gray-300 rounded-xl px-4 py-4 text-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50"
             />
             {job.haul_types && (
               <span className="text-base text-gray-500 shrink-0">{job.haul_types.unit}</span>
@@ -391,7 +405,7 @@ export default function JobDetail() {
             rows={3}
             placeholder="Add any notes about this job…"
             readOnly={!!isReadOnly}
-            className="w-full border border-gray-300 rounded-lg px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+            className="w-full border border-gray-300 rounded-xl px-4 py-4 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
           />
         </Section>
 
@@ -416,7 +430,7 @@ export default function JobDetail() {
                 <button
                   type="button"
                   onClick={() => photoInputRef.current?.click()}
-                  className="w-full py-3.5 border-2 border-gray-300 rounded-xl text-base font-medium text-gray-700 active:bg-gray-50"
+                  className="w-full min-h-14 py-4 border-2 border-gray-300 rounded-xl text-base font-medium text-gray-700 active:bg-gray-50"
                 >
                   Retake photo
                 </button>
@@ -427,7 +441,7 @@ export default function JobDetail() {
               <button
                 type="button"
                 onClick={() => photoInputRef.current?.click()}
-                className="w-full py-4 border-2 border-dashed border-gray-300 rounded-xl text-base font-medium text-gray-500 active:bg-gray-50 flex items-center justify-center gap-2"
+                className="w-full min-h-16 py-5 border-2 border-dashed border-gray-300 rounded-xl text-base font-medium text-gray-500 active:bg-gray-50 flex items-center justify-center gap-2"
               >
                 <span className="text-2xl">📷</span>
                 Take photo
@@ -478,12 +492,12 @@ export default function JobDetail() {
 
       {/* Sticky save bar */}
       {!isReadOnly && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-4 safe-area-inset-bottom">
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-4 pb-safe">
           <button
             type="button"
             onClick={save}
             disabled={saving}
-            className="w-full py-4 bg-blue-600 active:bg-blue-700 text-white text-base font-semibold rounded-xl disabled:opacity-50 transition-colors"
+            className="w-full min-h-14 py-4 bg-blue-600 active:bg-blue-700 text-white text-lg font-semibold rounded-xl disabled:opacity-50 transition-colors"
           >
             {saving ? 'Saving…' : pendingStatus && pendingStatus !== job.status ? `Save & mark ${STATUS_LABEL[pendingStatus]}` : 'Save changes'}
           </button>

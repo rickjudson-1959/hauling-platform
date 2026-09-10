@@ -424,7 +424,7 @@ export default function JobsPage() {
                   ))}
                 </select>
                 {drivers.length === 0 && (
-                  <p className="text-xs text-gray-400 mt-1">No drivers in this org yet.</p>
+                  <p className="text-xs text-gray-400 mt-1">No drivers in this org yet. Invite one from Settings.</p>
                 )}
               </div>
             </div>
