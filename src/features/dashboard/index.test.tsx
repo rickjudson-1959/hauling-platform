@@ -59,6 +59,11 @@ describe('DashboardPage', () => {
     expect(screen.getByText('Bin haul')).toBeInTheDocument()
     expect(screen.getByText('Water')).toBeInTheDocument()
     expect(screen.getByText(/Local hauling for any truck type/)).toBeInTheDocument()
+    expect(
+      Array.from(document.querySelectorAll('img')).some(el =>
+        (el.getAttribute('src') ?? '').includes('02-dashboard-empty-state.jpg'),
+      ),
+    ).toBe(true)
     expect(document.body.textContent).not.toMatch(/book a bin/i)
     expect(document.body.textContent).not.toMatch(/roll-off/i)
     expect(document.body.textContent).not.toMatch(/marketplace/i)
