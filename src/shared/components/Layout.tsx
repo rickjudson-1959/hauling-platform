@@ -1,5 +1,6 @@
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../../features/auth/useAuth'
+import BrandMark from './BrandMark'
 
 const NAV = [
   { to: '/dashboard', label: 'Dashboard' },
@@ -16,20 +17,23 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const { pathname } = useLocation()
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 flex items-center h-14 gap-1 overflow-x-auto">
-          <span className="font-semibold text-gray-900 mr-3 shrink-0 text-sm">
-            {org?.name ?? '…'}
-          </span>
+    <div className="min-h-screen bg-canvas">
+      <nav className="border-b border-gray-200/80 bg-white">
+        <div className="mx-auto flex h-12 max-w-7xl items-center gap-0.5 overflow-x-auto px-4">
+          <Link to="/dashboard" className="mr-3 flex shrink-0 items-center gap-2">
+            <BrandMark />
+            <span className="text-sm font-semibold tracking-tight text-gray-900">
+              {org?.name ?? 'Hauling'}
+            </span>
+          </Link>
           {NAV.map(({ to, label }) => (
             <Link
               key={to}
               to={to}
-              className={`shrink-0 px-3 py-1.5 rounded text-sm font-medium whitespace-nowrap ${
+              className={`shrink-0 whitespace-nowrap rounded-lg px-2.5 py-1 text-sm font-medium ${
                 pathname === to
-                  ? 'bg-blue-600 text-white'
-                  : 'text-gray-600 hover:bg-gray-100'
+                  ? 'bg-brand text-white'
+                  : 'text-gray-600 hover:bg-brand-soft hover:text-gray-900'
               }`}
             >
               {label}
@@ -43,7 +47,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           </button>
         </div>
       </nav>
-      <main className="max-w-7xl mx-auto px-4 py-8">{children}</main>
+      <main className="mx-auto max-w-7xl px-4 py-8">{children}</main>
     </div>
   )
 }

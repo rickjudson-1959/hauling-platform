@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../../shared/lib/supabase'
 import { homePath } from './homePath'
+import AuthShell from './AuthShell'
 
 export default function LoginPage() {
   const navigate = useNavigate()
@@ -32,24 +33,27 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+    <AuthShell>
       <form
         onSubmit={handleSubmit}
-        className="bg-white p-8 rounded-lg shadow w-full max-w-sm space-y-4"
+        className="space-y-4 rounded-card bg-white p-8 shadow-card"
       >
-        <h1 className="text-2xl font-bold text-gray-900">Sign in</h1>
-        <p className="text-sm text-gray-600">
-          Invited to drive? Use the email your office sent. You will land on My Jobs.
-        </p>
+        <div>
+          <p className="text-xs font-medium uppercase tracking-wide text-brand">Open the dashboard</p>
+          <h2 className="mt-1 text-2xl font-semibold tracking-tight text-gray-900">Sign in</h2>
+          <p className="mt-1 text-sm text-gray-600">
+            Invited to drive? Use the email your office sent. You will land on My Jobs.
+          </p>
+        </div>
 
         {error && (
-          <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded p-2">
+          <p className="rounded-lg border border-red-200 bg-red-50 p-2 text-sm text-red-600">
             {error}
           </p>
         )}
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="mb-1 block text-sm font-medium text-gray-700">
             Email
           </label>
           <input
@@ -58,12 +62,12 @@ export default function LoginPage() {
             onChange={e => setEmail(e.target.value)}
             required
             autoComplete="email"
-            className="block w-full border border-gray-300 rounded-lg px-3 py-3.5 text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="block w-full rounded-lg border border-gray-300 px-3 py-3.5 text-base focus:outline-none focus:ring-2 focus:ring-brand"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="mb-1 block text-sm font-medium text-gray-700">
             Password
           </label>
           <input
@@ -72,25 +76,25 @@ export default function LoginPage() {
             onChange={e => setPassword(e.target.value)}
             required
             autoComplete="current-password"
-            className="block w-full border border-gray-300 rounded-lg px-3 py-3.5 text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="block w-full rounded-lg border border-gray-300 px-3 py-3.5 text-base focus:outline-none focus:ring-2 focus:ring-brand"
           />
         </div>
 
         <button
           type="submit"
           disabled={loading}
-          className="w-full min-h-12 bg-blue-600 text-white py-3.5 px-4 rounded-xl hover:bg-blue-700 disabled:opacity-50 text-base font-semibold"
+          className="min-h-12 w-full rounded-xl bg-brand px-4 py-3.5 text-base font-semibold text-white hover:bg-brand-hover disabled:opacity-50"
         >
           {loading ? 'Signing in…' : 'Sign in'}
         </button>
 
         <p className="text-center text-sm text-gray-500">
           New company?{' '}
-          <Link to="/signup" className="text-blue-600 hover:underline">
+          <Link to="/signup" className="text-brand hover:underline">
             Create an account
           </Link>
         </p>
       </form>
-    </div>
+    </AuthShell>
   )
 }
