@@ -54,7 +54,10 @@ describe('DashboardPage', () => {
     expect(screen.getByRole('link', { name: 'Add a truck' })).toHaveAttribute('href', '/trucks')
     expect(screen.getByRole('link', { name: 'Add a job' })).toHaveAttribute('href', '/jobs')
     expect(screen.getAllByRole('link', { name: 'Invite a driver' }).length).toBeGreaterThan(0)
-    expect(screen.getByAltText('Empty roll-off bin on a quiet yard')).toBeInTheDocument()
+    expect(screen.getByText('Dump')).toBeInTheDocument()
+    expect(screen.getByText('Hydrovac')).toBeInTheDocument()
+    expect(screen.getByText('Bin haul')).toBeInTheDocument()
+    expect(screen.getByText('Water')).toBeInTheDocument()
   })
 
   it('hides the getting-started still when the org already has trucks', async () => {

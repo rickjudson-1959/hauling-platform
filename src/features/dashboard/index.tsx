@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { HAUL_SERVICES } from '../../shared/brand/services'
 import { supabase } from '../../shared/lib/supabase'
 import { orgQuery } from '../../shared/utils/db'
 import { useAuth } from '../auth/useAuth'
@@ -176,41 +177,48 @@ export default function DashboardPage() {
 function GettingStarted() {
   return (
     <section className="overflow-hidden rounded-card border border-gray-100 bg-white shadow-card">
-      <div className="grid md:grid-cols-2">
-        <img
-          src="/brand/02-dashboard-empty-state.jpg"
-          alt="Empty roll-off bin on a quiet yard"
-          className="h-48 w-full object-cover md:h-full"
-        />
-        <div className="flex flex-col justify-center gap-4 p-6">
-          <div>
-            <h2 className="text-lg font-semibold tracking-tight text-gray-900">
-              Nothing on the board yet
-            </h2>
-            <p className="mt-1 text-sm text-gray-500">
-              Add a truck and a job to start the day. The tiles below stay at zero until this organisation has data.
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Link
-              to="/trucks"
-              className="inline-flex min-h-10 items-center rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-hover"
-            >
-              Add a truck
-            </Link>
-            <Link
-              to="/jobs"
-              className="inline-flex min-h-10 items-center rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-800 hover:bg-gray-50"
-            >
-              Add a job
-            </Link>
-            <Link
-              to="/settings"
-              className="inline-flex min-h-10 items-center rounded-xl px-4 py-2 text-sm font-medium text-brand hover:underline"
-            >
-              Invite a driver
-            </Link>
-          </div>
+      <div className="flex flex-col gap-4 p-6">
+        <div>
+          <h2 className="text-lg font-semibold tracking-tight text-gray-900">
+            Nothing on the board yet
+          </h2>
+          <p className="mt-1 text-sm text-gray-500">
+            Local hauling for dump, hydrovac, bin haul, and water. Add a truck and a job to start the day. The tiles below stay at zero until this organisation has data.
+          </p>
+        </div>
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          {HAUL_SERVICES.map(service => (
+            <figure key={service.id} className="overflow-hidden rounded-xl border border-gray-100 bg-canvas">
+              <img
+                src={service.src}
+                alt=""
+                className="h-28 w-full object-cover"
+              />
+              <figcaption className="px-3 py-2 text-sm font-medium text-gray-800">
+                {service.label}
+              </figcaption>
+            </figure>
+          ))}
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Link
+            to="/trucks"
+            className="inline-flex min-h-10 items-center rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-hover"
+          >
+            Add a truck
+          </Link>
+          <Link
+            to="/jobs"
+            className="inline-flex min-h-10 items-center rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-800 hover:bg-gray-50"
+          >
+            Add a job
+          </Link>
+          <Link
+            to="/settings"
+            className="inline-flex min-h-10 items-center rounded-xl px-4 py-2 text-sm font-medium text-brand hover:underline"
+          >
+            Invite a driver
+          </Link>
         </div>
       </div>
     </section>

@@ -1,4 +1,5 @@
 import BrandMark from '../../shared/components/BrandMark'
+import HeroRotate from './HeroRotate'
 
 const TRUST = ['dispatch', 'trucks', 'drivers', 'invoices'] as const
 
@@ -6,11 +7,7 @@ export default function AuthShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-canvas lg:grid lg:grid-cols-2">
       <aside className="relative hidden overflow-hidden lg:flex">
-        <img
-          src="/brand/01-login-hero-16x9.jpg"
-          alt=""
-          className="absolute inset-0 h-full w-full object-cover"
-        />
+        <HeroRotate />
         <div className="absolute inset-0 bg-gradient-to-t from-gray-950/70 via-gray-950/25 to-transparent" />
         <div className="relative z-10 mt-auto flex w-full max-w-xl flex-col gap-4 p-10 text-white">
           <div className="flex items-center gap-2 text-sm font-semibold">
@@ -30,11 +27,7 @@ export default function AuthShell({ children }: { children: React.ReactNode }) {
 
       <div className="flex min-h-screen flex-col">
         <div className="relative h-52 overflow-hidden lg:hidden">
-          <img
-            src="/brand/01b-login-hero-9x16.jpg"
-            alt=""
-            className="absolute inset-0 h-full w-full object-cover object-center"
-          />
+          <HeroRotate />
           <div className="absolute inset-0 bg-gradient-to-t from-gray-950/75 via-gray-950/30 to-transparent" />
           <div className="relative z-10 flex h-full flex-col justify-end gap-2 px-5 pb-5 text-white">
             <div className="flex items-center gap-2 text-sm font-semibold">
