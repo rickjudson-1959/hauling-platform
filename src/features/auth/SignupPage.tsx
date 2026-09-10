@@ -57,10 +57,11 @@ export default function SignupPage() {
         )}
 
         <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700">
+          <label htmlFor="signup-company" className="mb-1 block text-sm font-medium text-gray-700">
             Company name
           </label>
           <input
+            id="signup-company"
             type="text"
             value={companyName}
             onChange={e => setCompanyName(e.target.value)}
@@ -71,10 +72,11 @@ export default function SignupPage() {
         </div>
 
         <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700">
+          <label htmlFor="signup-email" className="mb-1 block text-sm font-medium text-gray-700">
             Email
           </label>
           <input
+            id="signup-email"
             type="email"
             value={email}
             onChange={e => setEmail(e.target.value)}
@@ -85,10 +87,11 @@ export default function SignupPage() {
         </div>
 
         <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700">
+          <label htmlFor="signup-password" className="mb-1 block text-sm font-medium text-gray-700">
             Password
           </label>
           <input
+            id="signup-password"
             type="password"
             value={password}
             onChange={e => setPassword(e.target.value)}
