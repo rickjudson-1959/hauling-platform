@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { supabase } from '../../shared/lib/supabase'
 import type { TablesUpdate } from '../../shared/types/database'
 import { useAuth } from '../auth/useAuth'
+import CollectPayment from './CollectPayment'
 
 // ── Status config ──────────────────────────────────────────────────────────────
 
@@ -45,6 +46,10 @@ interface Job {
   site_address: string | null
   status: string
   quantity: number | null
+  price: number | null
+  payment_status: string
+  tax_amount: number | null
+  tax_label: string | null
   notes: string | null
   photo_url: string | null
   signature_url: string | null
@@ -55,7 +60,7 @@ interface Job {
 }
 
 const JOB_COLS =
-  'id, scheduled_for, site_address, status, quantity, notes, photo_url, signature_url, org_id, customers(name), haul_types(name,unit), trucks(label)'
+  'id, scheduled_for, site_address, status, quantity, price, payment_status, tax_amount, tax_label, notes, photo_url, signature_url, org_id, customers(name), haul_types(name,unit), trucks(label)'
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -249,7 +254,11 @@ export default function JobDetail() {
       signatureUrl = supabase.storage.from('job-media').getPublicUrl(path).data.publicUrl
     }
 
-    const newStatus = pendingStatus ?? job.status
+    const requestedStatus = pendingStatus ?? job.status
+    let newStatus = requestedStatus
+    if (requestedStatus === 'completed' && job.payment_status === 'paid') {
+      newStatus = 'invoiced'
+    }
     const patch: TablesUpdate<'jobs'> = {
       quantity:      qty !== '' ? Number(qty) : null,
       notes:         notes.trim() || null,
@@ -257,14 +266,22 @@ export default function JobDetail() {
       signature_url: signatureUrl,
       status:        newStatus,
     }
-    if (newStatus === 'completed' && job.status !== 'completed') {
+    if (requestedStatus === 'completed' && job.status !== 'completed' && job.status !== 'invoiced') {
       patch.completed_at = new Date().toISOString()
     }
 
     const { error: updateErr } = await supabase
-      .from('jobs').update(patch).eq('id', job.id)
+      .from('jobs').update(patch).eq('id', job.id).eq('org_id', org.id)
 
     if (updateErr) { setSaveError(updateErr.message); setSaving(false); return }
+
+    const stayToCollect = requestedStatus === 'on_site' || requestedStatus === 'completed' || newStatus === 'invoiced'
+    if (stayToCollect) {
+      setPendingStatus(null)
+      setSaving(false)
+      await load()
+      return
+    }
     navigate('/driver')
   }
 
@@ -481,6 +498,20 @@ export default function JobDetail() {
             <p className="text-sm text-gray-400">No signature on file.</p>
           )}
         </Section>
+
+        <CollectPayment
+          key={`${job.id}-${job.payment_status}-${job.price ?? ''}`}
+          job={{
+            id: job.id,
+            org_id: job.org_id,
+            status: job.status,
+            payment_status: job.payment_status ?? 'unpaid',
+            price: job.price,
+            tax_amount: job.tax_amount,
+            tax_label: job.tax_label,
+          }}
+          onJobReload={load}
+        />
 
         {/* Error */}
         {saveError && (
