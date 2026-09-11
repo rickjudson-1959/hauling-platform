@@ -5,6 +5,7 @@ import { supabase } from '../../shared/lib/supabase'
 import {
   canShowCollectSection,
   chargeBreakdown,
+  clientPublishableKey,
   formatCad,
 } from './payment'
 
@@ -70,12 +71,16 @@ export default function CollectPayment({ job, onJobReload }: Props) {
       setError(fnError?.message ?? data?.error ?? 'Could not start payment. Try again.')
       return
     }
-    if (!data?.clientSecret || !data?.publishableKey) {
+    const publishable = clientPublishableKey(
+      import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY,
+      data?.publishableKey,
+    )
+    if (!data?.clientSecret || !publishable) {
       setError('Card collection is not configured. Ask the office to set the Stripe test keys.')
       return
     }
     setClientSecret(data.clientSecret)
-    setPublishableKey(data.publishableKey)
+    setPublishableKey(publishable)
     setPaymentIntentId(data.paymentIntentId ?? null)
     setCollecting(true)
   }

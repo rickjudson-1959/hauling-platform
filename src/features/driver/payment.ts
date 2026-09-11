@@ -60,3 +60,14 @@ export function shouldFulfillOnsitePayment(input: {
 export function isChargeableCents(amountCents: number): boolean {
   return Number.isInteger(amountCents) && amountCents >= MIN_CHARGE_CENTS
 }
+
+/** Vite client key (pk_test only). Fenrir NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY maps here. */
+export function clientPublishableKey(
+  viteKey: string | undefined,
+  serverKey: string | undefined,
+): string | null {
+  for (const key of [viteKey, serverKey]) {
+    if (key && key.startsWith('pk_test_')) return key
+  }
+  return null
+}

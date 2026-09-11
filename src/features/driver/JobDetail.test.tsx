@@ -85,7 +85,7 @@ describe('JobDetail on-site pay', () => {
     await waitFor(() => {
       expect(screen.getByText('River Farms')).toBeInTheDocument()
     })
-    expect(screen.getByRole('button', { name: 'Collect payment' })).toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: 'Collect payment' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Skip for now' })).toBeInTheDocument()
   })
 
