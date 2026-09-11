@@ -82,17 +82,20 @@ export default function CollectPayment({ job, onJobReload }: Props) {
 
   async function skip() {
     setError(null)
-    setCollecting(false)
-    setClientSecret(null)
-    setPublishableKey(null)
-    setPaymentIntentId(null)
-    setSkipped(true)
     const { error: skipErr } = await supabase
       .from('jobs')
       .update({ payment_status: 'unpaid' })
       .eq('id', job.id)
       .eq('org_id', job.org_id)
-    if (skipErr) setError(skipErr.message)
+    if (skipErr) {
+      setError(skipErr.message)
+      return
+    }
+    setCollecting(false)
+    setClientSecret(null)
+    setPublishableKey(null)
+    setPaymentIntentId(null)
+    setSkipped(true)
   }
 
   if (paid) {
