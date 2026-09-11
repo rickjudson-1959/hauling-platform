@@ -1,0 +1,9 @@
+# Function JWT settings only. stripe-webhook is called by Stripe, not by a logged-in user.
+[functions.create-onsite-payment-intent]
+verify_jwt = true
+
+[functions.confirm-onsite-payment]
+verify_jwt = true
+
+[functions.stripe-webhook]
+verify_jwt = false
