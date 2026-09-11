@@ -1,9 +1,9 @@
-import { useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { supabase } from '../../shared/lib/supabase'
 import type { TablesUpdate } from '../../shared/types/database'
 import { useAuth } from '../auth/useAuth'
-import CollectPayment from './CollectPayment'
+const CollectPayment = lazy(() => import('./CollectPayment'))
 
 // ── Status config ──────────────────────────────────────────────────────────────
 
@@ -499,19 +499,21 @@ export default function JobDetail() {
           )}
         </Section>
 
-        <CollectPayment
-          key={`${job.id}-${job.payment_status}-${job.price ?? ''}`}
-          job={{
-            id: job.id,
-            org_id: job.org_id,
-            status: job.status,
-            payment_status: job.payment_status ?? 'unpaid',
-            price: job.price,
-            tax_amount: job.tax_amount,
-            tax_label: job.tax_label,
-          }}
-          onJobReload={load}
-        />
+        <Suspense fallback={null}>
+          <CollectPayment
+            key={`${job.id}-${job.payment_status}-${job.price ?? ''}`}
+            job={{
+              id: job.id,
+              org_id: job.org_id,
+              status: job.status,
+              payment_status: job.payment_status ?? 'unpaid',
+              price: job.price,
+              tax_amount: job.tax_amount,
+              tax_label: job.tax_label,
+            }}
+            onJobReload={load}
+          />
+        </Suspense>
 
         {/* Error */}
         {saveError && (

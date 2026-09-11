@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   canShowCollectSection,
   chargeBreakdown,
+  clientPublishableKey,
   formatCad,
   isChargeableCents,
   shouldFulfillOnsitePayment,
@@ -73,6 +74,14 @@ describe('shouldFulfillOnsitePayment', () => {
       alreadyProcessedEvent: false,
       jobAlreadyPaid: true,
     })).toEqual({ fulfill: false, sendEmail: false })
+  })
+})
+
+describe('clientPublishableKey', () => {
+  it('prefers the Vite test publishable key and rejects live keys', () => {
+    expect(clientPublishableKey('pk_test_vite', 'pk_test_server')).toBe('pk_test_vite')
+    expect(clientPublishableKey('pk_live_nope', 'pk_test_server')).toBe('pk_test_server')
+    expect(clientPublishableKey(undefined, undefined)).toBeNull()
   })
 })
 
