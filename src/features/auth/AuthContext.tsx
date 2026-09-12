@@ -14,7 +14,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   const fetchMembership = useCallback(async () => {
-    const result = await fetchActiveMembership(supabase)
+    const result = await fetchActiveMembership()
     if (result.status === 'error') {
       setMembershipError(result.message)
       setLoading(false)

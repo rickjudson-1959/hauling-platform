@@ -24,7 +24,7 @@ export default function LoginPage() {
       return
     }
 
-    const membership = await fetchActiveMembership(supabase)
+    const membership = await fetchActiveMembership()
     if (membership.status === 'error') {
       setLoading(false)
       setError(membership.message)

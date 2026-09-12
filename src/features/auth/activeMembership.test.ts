@@ -1,4 +1,9 @@
 import { describe, expect, it, vi } from 'vitest'
+
+vi.mock('../../shared/lib/supabase', () => ({
+  supabase: { rpc: vi.fn(), from: vi.fn() },
+}))
+
 import {
   fetchActiveMembership,
   INACTIVE_MEMBERSHIP_MESSAGE,
@@ -8,7 +13,7 @@ import {
 
 function rpcClient(handlers: Record<string, { data?: unknown; error?: { message?: string; code?: string } | null }>): MembershipClient {
   return {
-    rpc: vi.fn(async (fn: string) => {
+    rpc: vi.fn(async (fn: 'my_active_membership' | 'my_role' | 'my_org_id') => {
       const result = handlers[fn]
       if (!result) return { data: null, error: { message: `unexpected rpc ${fn}` } }
       return { data: result.data ?? null, error: result.error ?? null }

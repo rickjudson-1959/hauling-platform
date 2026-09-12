@@ -1,3 +1,5 @@
+import { supabase } from '../../shared/lib/supabase'
+
 export const INACTIVE_MEMBERSHIP_MESSAGE =
   'Your account is not active on a team. Ask your office admin to reactivate you or invite you again.'
 
@@ -19,12 +21,14 @@ type RpcError = { message?: string; code?: string } | null
 
 type RpcResponse = { data: unknown; error: RpcError }
 
+type MembershipRpcName = 'my_active_membership' | 'my_role' | 'my_org_id'
+
 export interface MembershipClient {
-  rpc: (fn: string) => Promise<RpcResponse>
+  rpc: (fn: MembershipRpcName) => PromiseLike<RpcResponse>
   from?: (table: string) => {
     select: (cols: string) => {
       eq: (col: string, value: string) => {
-        maybeSingle: () => Promise<{ data: { name?: string } | null; error: RpcError }>
+        maybeSingle: () => PromiseLike<{ data: { name?: string } | null; error: RpcError }>
       }
     }
   }
@@ -100,7 +104,9 @@ export function formatMembershipLoadError(error: RpcError): string {
   return `${MEMBERSHIP_LOAD_ERROR_FALLBACK} (${detail})`
 }
 
-export async function fetchActiveMembership(client: MembershipClient): Promise<ActiveMembershipResult> {
+export async function fetchActiveMembership(
+  client: MembershipClient = supabase as unknown as MembershipClient,
+): Promise<ActiveMembershipResult> {
   const dedicated = await client.rpc('my_active_membership')
   if (!dedicated.error) return parseDedicated(dedicated.data)
   if (isMissingRpc(dedicated.error)) return fetchViaExistingHelpers(client)
