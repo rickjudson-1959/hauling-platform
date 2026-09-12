@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../../shared/lib/supabase'
+import { fetchActiveMembership, INACTIVE_MEMBERSHIP_MESSAGE } from './activeMembership'
 import { homePath } from './homePath'
 import AuthShell from './AuthShell'
 import PasswordInput from './PasswordInput'
@@ -23,22 +24,21 @@ export default function LoginPage() {
       return
     }
 
-    const { data: membership } = await supabase
-      .from('memberships')
-      .select('role')
-      .eq('user_id', data.user.id)
-      .eq('active', true)
-      .maybeSingle()
-
-    if (!membership) {
+    const membership = await fetchActiveMembership()
+    if (membership.status === 'error') {
+      setLoading(false)
+      setError(membership.message)
+      return
+    }
+    if (membership.status === 'inactive') {
       await supabase.auth.signOut()
       setLoading(false)
-      setError('Your account is not active on a team. Ask your office admin to reactivate you or invite you again.')
+      setError(INACTIVE_MEMBERSHIP_MESSAGE)
       return
     }
 
     setLoading(false)
-    navigate(homePath(membership.role), { replace: true })
+    navigate(homePath(membership.membership.role), { replace: true })
   }
 
   return (

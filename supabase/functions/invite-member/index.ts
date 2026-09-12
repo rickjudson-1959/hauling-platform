@@ -14,6 +14,9 @@ function json(body: unknown, status = 200) {
 
 const VALID_ROLES = ['admin', 'dispatcher', 'driver']
 
+/** Always the production set-password page so preview/localhost invites still land on live. */
+const SET_PASSWORD_REDIRECT = 'https://hauling-platform.vercel.app/set-password'
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS })
   try {
@@ -50,9 +53,9 @@ async function handle(req: Request) {
   if (memError || !callerMem) return json({ error: 'Membership not found' }, 403)
   if (callerMem.role !== 'admin') return json({ error: 'Only admins can invite members' }, 403)
 
-  let email: string, role: string, redirectTo: string | undefined
+  let email: string, role: string
   try {
-    ;({ email, role, redirectTo } = await req.json())
+    ;({ email, role } = await req.json())
   } catch {
     return json({ error: 'Invalid request body' }, 400)
   }
@@ -73,13 +76,11 @@ async function handle(req: Request) {
     inviteeId = existing.id
   } else {
     // New user — generate an invite link they can use to set their password
-    const linkOpts: { type: 'invite'; email: string; options?: { redirectTo: string } } = {
+    const { data: linkData, error: linkError } = await admin.auth.admin.generateLink({
       type: 'invite',
       email,
-    }
-    if (redirectTo) linkOpts.options = { redirectTo }
-
-    const { data: linkData, error: linkError } = await admin.auth.admin.generateLink(linkOpts)
+      options: { redirectTo: SET_PASSWORD_REDIRECT },
+    })
     if (linkError) return json({ error: linkError.message }, 500)
 
     inviteeId = linkData.user.id

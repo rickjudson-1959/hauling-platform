@@ -11,6 +11,9 @@ import {
   type TeamMember,
 } from './teamMembership'
 
+/** Always the production set-password page so preview/localhost invites still land on live. */
+export const INVITE_SET_PASSWORD_REDIRECT = 'https://hauling-platform.vercel.app/set-password'
+
 const ROLES = ['admin', 'dispatcher', 'driver'] as const
 type Role = typeof ROLES[number]
 
@@ -146,7 +149,7 @@ export default function TeamSection() {
       body: {
         email: inviteEmail.trim(),
         role: inviteRole,
-        redirectTo: `${window.location.origin}/set-password`,
+        redirectTo: INVITE_SET_PASSWORD_REDIRECT,
       },
     })
 
