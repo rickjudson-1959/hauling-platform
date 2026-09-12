@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../../shared/lib/supabase'
 import { homePath } from './homePath'
 import AuthShell from './AuthShell'
+import PasswordInput from './PasswordInput'
 
 export default function LoginPage() {
   const navigate = useNavigate()
@@ -71,14 +72,13 @@ export default function LoginPage() {
           <label htmlFor="login-password" className="mb-1 block text-sm font-medium text-gray-700">
             Password
           </label>
-          <input
+          <PasswordInput
             id="login-password"
-            type="password"
             value={password}
             onChange={e => setPassword(e.target.value)}
             required
             autoComplete="current-password"
-            className="block w-full rounded-lg border border-gray-300 px-3 py-3.5 text-base focus:outline-none focus:ring-2 focus:ring-brand"
+            className="block w-full rounded-lg border border-gray-300 py-3.5 pl-3 text-base focus:outline-none focus:ring-2 focus:ring-brand"
           />
         </div>
 
