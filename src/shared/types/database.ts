@@ -316,6 +316,7 @@ export type Database = {
           id: string
           notes: string | null
           org_id: string
+          payment_status: string
           photo_url: string | null
           price: number | null
           quantity: number | null
@@ -323,6 +324,9 @@ export type Database = {
           signature_url: string | null
           site_address: string | null
           status: string
+          stripe_payment_intent_id: string | null
+          tax_amount: number | null
+          tax_label: string | null
           truck_id: string | null
         }
         Insert: {
@@ -334,6 +338,7 @@ export type Database = {
           id?: string
           notes?: string | null
           org_id: string
+          payment_status?: string
           photo_url?: string | null
           price?: number | null
           quantity?: number | null
@@ -341,6 +346,9 @@ export type Database = {
           signature_url?: string | null
           site_address?: string | null
           status?: string
+          stripe_payment_intent_id?: string | null
+          tax_amount?: number | null
+          tax_label?: string | null
           truck_id?: string | null
         }
         Update: {
@@ -352,6 +360,7 @@ export type Database = {
           id?: string
           notes?: string | null
           org_id?: string
+          payment_status?: string
           photo_url?: string | null
           price?: number | null
           quantity?: number | null
@@ -359,6 +368,9 @@ export type Database = {
           signature_url?: string | null
           site_address?: string | null
           status?: string
+          stripe_payment_intent_id?: string | null
+          tax_amount?: number | null
+          tax_label?: string | null
           truck_id?: string | null
         }
         Relationships: [
@@ -421,6 +433,105 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: 'memberships_org_id_fkey'
+            columns: ['org_id']
+            isOneToOne: false
+            referencedRelation: 'orgs'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      payments: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          id: string
+          job_id: string
+          org_id: string
+          receipt_emailed_at: string | null
+          source: string
+          status: string
+          stripe_charge_id: string | null
+          stripe_event_id: string | null
+          stripe_payment_intent_id: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency?: string
+          id?: string
+          job_id: string
+          org_id: string
+          receipt_emailed_at?: string | null
+          source?: string
+          status: string
+          stripe_charge_id?: string | null
+          stripe_event_id?: string | null
+          stripe_payment_intent_id?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          job_id?: string
+          org_id?: string
+          receipt_emailed_at?: string | null
+          source?: string
+          status?: string
+          stripe_charge_id?: string | null
+          stripe_event_id?: string | null
+          stripe_payment_intent_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'payments_job_id_fkey'
+            columns: ['job_id']
+            isOneToOne: false
+            referencedRelation: 'jobs'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'payments_org_id_fkey'
+            columns: ['org_id']
+            isOneToOne: false
+            referencedRelation: 'orgs'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      stripe_events: {
+        Row: {
+          created_at: string
+          id: string
+          job_id: string | null
+          org_id: string | null
+          type: string
+        }
+        Insert: {
+          created_at?: string
+          id: string
+          job_id?: string | null
+          org_id?: string | null
+          type: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          job_id?: string | null
+          org_id?: string | null
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'stripe_events_job_id_fkey'
+            columns: ['job_id']
+            isOneToOne: false
+            referencedRelation: 'jobs'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'stripe_events_org_id_fkey'
             columns: ['org_id']
             isOneToOne: false
             referencedRelation: 'orgs'
