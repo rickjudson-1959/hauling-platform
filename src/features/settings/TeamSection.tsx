@@ -1,15 +1,21 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../../shared/lib/supabase'
+import Modal from '../../shared/components/Modal'
 import { useAuth } from '../auth/useAuth'
+import {
+  LAST_ADMIN_MESSAGE,
+  REMOVE_CONFIRM_COPY,
+  canDeactivateOrRemove,
+  isActiveMember,
+  normalizeActive,
+  type TeamMember,
+} from './teamMembership'
 
 const ROLES = ['admin', 'dispatcher', 'driver'] as const
 type Role = typeof ROLES[number]
 
-interface Member {
-  membership_id: string
-  user_id: string
+interface Member extends TeamMember {
   role: Role
-  email: string
 }
 
 interface InviteResult {
@@ -25,6 +31,28 @@ const ROLE_LABEL: Record<Role, string> = {
   driver: 'Driver',
 }
 
+function toMember(row: {
+  membership_id: string
+  user_id: string
+  role: string
+  email: string
+  active?: boolean | null
+}): Member {
+  return {
+    membership_id: row.membership_id,
+    user_id: row.user_id,
+    role: row.role as Role,
+    email: row.email,
+    active: normalizeActive(row.active),
+  }
+}
+
+function rpcErrorMessage(error: { message?: string } | null, fallback: string): string {
+  const raw = error?.message ?? fallback
+  const cut = raw.split('\n')[0] ?? raw
+  return cut.replace(/^ERROR:\s*/i, '')
+}
+
 export default function TeamSection() {
   const { org, role: myRole, user } = useAuth()
   const isAdmin = myRole === 'admin'
@@ -37,6 +65,9 @@ export default function TeamSection() {
   const [inviteError, setInviteError] = useState<string | null>(null)
   const [result,      setResult]      = useState<InviteResult | null>(null)
   const [roleErrors,  setRoleErrors]  = useState<Record<string, string>>({})
+  const [actionError, setActionError] = useState<string | null>(null)
+  const [pendingId,   setPendingId]   = useState<string | null>(null)
+  const [removeTarget, setRemoveTarget] = useState<Member | null>(null)
   const [copied,      setCopied]      = useState(false)
 
   useEffect(() => {
@@ -46,7 +77,7 @@ export default function TeamSection() {
   async function load() {
     setLoading(true)
     const { data } = await supabase.rpc('org_members')
-    setMembers((data as Member[]) ?? [])
+    setMembers(((data as Parameters<typeof toMember>[0][] | null) ?? []).map(toMember))
     setLoading(false)
   }
 
@@ -59,12 +90,49 @@ export default function TeamSection() {
       .eq('id', membershipId)
       .eq('org_id', org.id)
     if (error) {
-      setRoleErrors(e => ({ ...e, [membershipId]: error.message }))
+      setRoleErrors(e => ({ ...e, [membershipId]: rpcErrorMessage(error, 'Could not change role') }))
     } else {
       setMembers(prev => prev.map(m =>
         m.membership_id === membershipId ? { ...m, role: newRole } : m
       ))
     }
+  }
+
+  async function runMembershipAction(
+    membershipId: string,
+    fn: 'deactivate_membership' | 'reactivate_membership' | 'remove_membership',
+    nextActive?: boolean,
+  ) {
+    setActionError(null)
+    setPendingId(membershipId)
+    const { error } = await supabase.rpc(fn, { p_membership_id: membershipId })
+    setPendingId(null)
+    if (error) {
+      setActionError(rpcErrorMessage(error, 'Could not update this team member'))
+      return false
+    }
+    if (fn === 'remove_membership') {
+      setMembers(prev => prev.filter(m => m.membership_id !== membershipId))
+    } else if (typeof nextActive === 'boolean') {
+      setMembers(prev => prev.map(m =>
+        m.membership_id === membershipId ? { ...m, active: nextActive } : m
+      ))
+    }
+    return true
+  }
+
+  async function deactivate(member: Member) {
+    await runMembershipAction(member.membership_id, 'deactivate_membership', false)
+  }
+
+  async function reactivate(member: Member) {
+    await runMembershipAction(member.membership_id, 'reactivate_membership', true)
+  }
+
+  async function confirmRemove() {
+    if (!removeTarget) return
+    const ok = await runMembershipAction(removeTarget.membership_id, 'remove_membership')
+    if (ok) setRemoveTarget(null)
   }
 
   async function invite(e: React.FormEvent) {
@@ -124,10 +192,16 @@ export default function TeamSection() {
         <h2 className="text-lg font-semibold text-gray-900">Team</h2>
         <p className="text-sm text-gray-500 mt-0.5">
           Members of your organisation and their roles. Invite a driver here so they can sign in on a phone and use My Jobs.
+          Deactivate someone to take away access and unassign their open jobs. Remove from team deletes only the membership so you can invite them again.
         </p>
       </div>
 
-      {/* Members list */}
+      {actionError && (
+        <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded p-2">
+          {actionError}
+        </p>
+      )}
+
       {loading ? (
         <p className="text-sm text-gray-500">Loading…</p>
       ) : (
@@ -137,12 +211,19 @@ export default function TeamSection() {
               <tr>
                 <th className="text-left px-4 py-3 font-medium text-gray-700">Email</th>
                 <th className="text-left px-4 py-3 font-medium text-gray-700">Role</th>
+                <th className="text-left px-4 py-3 font-medium text-gray-700">Status</th>
+                {isAdmin && (
+                  <th className="text-right px-4 py-3 font-medium text-gray-700">Actions</th>
+                )}
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {members.map(m => {
                 const isMe = m.user_id === user?.id
                 const err  = roleErrors[m.membership_id]
+                const active = isActiveMember(m)
+                const canManage = canDeactivateOrRemove(m, members)
+                const busy = pendingId === m.membership_id
                 return (
                   <tr key={m.membership_id} className="hover:bg-gray-50">
                     <td className="px-4 py-3 text-gray-900">
@@ -154,7 +235,7 @@ export default function TeamSection() {
                       )}
                     </td>
                     <td className="px-4 py-3">
-                      {isAdmin && !isMe ? (
+                      {isAdmin && !isMe && active ? (
                         <div>
                           <select
                             value={m.role}
@@ -171,6 +252,55 @@ export default function TeamSection() {
                         <span className="text-gray-700">{ROLE_LABEL[m.role] ?? m.role}</span>
                       )}
                     </td>
+                    <td className="px-4 py-3">
+                      <span
+                        className={
+                          active
+                            ? 'inline-flex text-xs font-medium bg-green-50 text-green-800 px-1.5 py-0.5 rounded'
+                            : 'inline-flex text-xs font-medium bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded'
+                        }
+                      >
+                        {active ? 'Active' : 'Inactive'}
+                      </span>
+                    </td>
+                    {isAdmin && (
+                      <td className="px-4 py-3 text-right">
+                        <div className="flex flex-wrap justify-end gap-2">
+                          {active ? (
+                            <button
+                              type="button"
+                              disabled={!canManage || busy}
+                              onClick={() => deactivate(m)}
+                              className="px-3 py-1.5 text-xs font-medium text-white bg-blue-600 rounded hover:bg-blue-700 disabled:opacity-50"
+                            >
+                              {busy ? 'Working…' : 'Deactivate'}
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              disabled={busy}
+                              onClick={() => reactivate(m)}
+                              className="px-3 py-1.5 text-xs font-medium text-white bg-blue-600 rounded hover:bg-blue-700 disabled:opacity-50"
+                            >
+                              {busy ? 'Working…' : 'Reactivate'}
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            disabled={!canManage || busy}
+                            onClick={() => { setActionError(null); setRemoveTarget(m) }}
+                            className="px-3 py-1.5 text-xs font-medium text-gray-700 border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50"
+                          >
+                            Remove from team
+                          </button>
+                        </div>
+                        {!canManage && (
+                          <p className="text-xs text-gray-500 mt-1">
+                            {LAST_ADMIN_MESSAGE}
+                          </p>
+                        )}
+                      </td>
+                    )}
                   </tr>
                 )
               })}
@@ -179,7 +309,6 @@ export default function TeamSection() {
         </div>
       )}
 
-      {/* Invite form — admins only */}
       {isAdmin && (
         <div className="bg-white border border-gray-200 rounded-lg p-5 space-y-4">
           <h3 className="text-sm font-semibold text-gray-900">Invite someone</h3>
@@ -266,6 +395,41 @@ export default function TeamSection() {
             </div>
           )}
         </div>
+      )}
+
+      {removeTarget && (
+        <Modal title="Remove from team" onClose={() => setRemoveTarget(null)}>
+          <div className="space-y-4">
+            <p className="text-sm text-gray-700">
+              Remove {removeTarget.email} from the team?
+            </p>
+            <p className="text-sm text-gray-600">
+              {REMOVE_CONFIRM_COPY}
+            </p>
+            {actionError && (
+              <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded p-2">
+                {actionError}
+              </p>
+            )}
+            <div className="flex justify-end gap-3 pt-1">
+              <button
+                type="button"
+                onClick={() => setRemoveTarget(null)}
+                className="px-4 py-2 text-sm text-gray-700 border border-gray-300 rounded hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={pendingId === removeTarget.membership_id}
+                onClick={() => void confirmRemove()}
+                className="px-4 py-2 text-sm text-white bg-red-600 rounded hover:bg-red-700 disabled:opacity-50"
+              >
+                {pendingId === removeTarget.membership_id ? 'Removing…' : 'Remove from team'}
+              </button>
+            </div>
+          </div>
+        </Modal>
       )}
     </section>
   )

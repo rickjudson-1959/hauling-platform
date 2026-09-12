@@ -8,7 +8,7 @@ interface Props {
 }
 
 export default function ProtectedRoute({ children, staffOnly }: Props) {
-  const { session, role, loading } = useAuth()
+  const { session, role, loading, signOut } = useAuth()
 
   if (loading) {
     return (
@@ -19,6 +19,26 @@ export default function ProtectedRoute({ children, staffOnly }: Props) {
   }
 
   if (!session) return <Navigate to="/login" replace />
+
+  if (!role) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="max-w-md space-y-3 text-center">
+          <h1 className="text-lg font-semibold text-gray-900">No team access</h1>
+          <p className="text-sm text-gray-600">
+            Your account is not active on a team. Ask your office admin to reactivate you or invite you again.
+          </p>
+          <button
+            type="button"
+            onClick={() => void signOut()}
+            className="min-h-10 rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+          >
+            Sign out
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   if (staffOnly && role === 'driver') return <Navigate to="/driver" replace />
 

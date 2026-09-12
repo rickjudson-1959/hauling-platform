@@ -16,7 +16,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       .from('memberships')
       .select('role, orgs(id, name)')
       .eq('user_id', userId)
-      .single()) as { data: { role: string; orgs: Org } | null; error: unknown }
+      .eq('active', true)
+      .maybeSingle()) as { data: { role: string; orgs: Org } | null; error: unknown }
 
     if (data) {
       setRole(data.role)

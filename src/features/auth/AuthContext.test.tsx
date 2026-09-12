@@ -28,6 +28,7 @@ function buildFromChain(resolvedValue: unknown) {
   const chain = {
     select: vi.fn(),
     eq: vi.fn(),
+    maybeSingle: vi.fn().mockResolvedValue(resolvedValue),
     single: vi.fn().mockResolvedValue(resolvedValue),
   }
   chain.select.mockReturnValue(chain)
@@ -71,6 +72,18 @@ describe('AuthContext', () => {
     await waitFor(() => expect(screen.queryByText('loading')).not.toBeInTheDocument())
     expect(screen.getByTestId('session').textContent).toBe('authed')
     expect(screen.getByTestId('role').textContent).toBe('dispatcher')
+    const chain = mockFrom.mock.results[0]?.value as { eq: ReturnType<typeof vi.fn> }
+    expect(chain.eq).toHaveBeenCalledWith('user_id', 'user-1')
+    expect(chain.eq).toHaveBeenCalledWith('active', true)
+  })
+
+  it('treats an inactive membership as no org access', async () => {
+    const fakeSession = { user: { id: 'user-1' } }
+    mockGetSession.mockResolvedValue({ data: { session: fakeSession } })
+    mockFrom.mockReturnValue(buildFromChain({ data: null }))
+    render(<AuthProvider><TestConsumer /></AuthProvider>)
+    await waitFor(() => expect(screen.queryByText('loading')).not.toBeInTheDocument())
+    expect(screen.getByTestId('role').textContent).toBe('none')
   })
 
   it('unsubscribes from auth state changes on unmount', async () => {
