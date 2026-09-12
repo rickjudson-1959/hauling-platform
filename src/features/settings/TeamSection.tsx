@@ -7,8 +7,7 @@ import {
   REMOVE_CONFIRM_COPY,
   canDeactivateOrRemove,
   isActiveMember,
-  normalizeMembershipStatus,
-  type MembershipStatus,
+  normalizeActive,
   type TeamMember,
 } from './teamMembership'
 
@@ -37,14 +36,14 @@ function toMember(row: {
   user_id: string
   role: string
   email: string
-  status?: string | null
+  active?: boolean | null
 }): Member {
   return {
     membership_id: row.membership_id,
     user_id: row.user_id,
     role: row.role as Role,
     email: row.email,
-    status: normalizeMembershipStatus(row.status),
+    active: normalizeActive(row.active),
   }
 }
 
@@ -102,7 +101,7 @@ export default function TeamSection() {
   async function runMembershipAction(
     membershipId: string,
     fn: 'deactivate_membership' | 'reactivate_membership' | 'remove_membership',
-    nextStatus?: MembershipStatus,
+    nextActive?: boolean,
   ) {
     setActionError(null)
     setPendingId(membershipId)
@@ -114,20 +113,20 @@ export default function TeamSection() {
     }
     if (fn === 'remove_membership') {
       setMembers(prev => prev.filter(m => m.membership_id !== membershipId))
-    } else if (nextStatus) {
+    } else if (typeof nextActive === 'boolean') {
       setMembers(prev => prev.map(m =>
-        m.membership_id === membershipId ? { ...m, status: nextStatus } : m
+        m.membership_id === membershipId ? { ...m, active: nextActive } : m
       ))
     }
     return true
   }
 
   async function deactivate(member: Member) {
-    await runMembershipAction(member.membership_id, 'deactivate_membership', 'inactive')
+    await runMembershipAction(member.membership_id, 'deactivate_membership', false)
   }
 
   async function reactivate(member: Member) {
-    await runMembershipAction(member.membership_id, 'reactivate_membership', 'active')
+    await runMembershipAction(member.membership_id, 'reactivate_membership', true)
   }
 
   async function confirmRemove() {

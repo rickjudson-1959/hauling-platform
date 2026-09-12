@@ -1,6 +1,3 @@
-export const MEMBERSHIP_STATUSES = ['active', 'inactive'] as const
-export type MembershipStatus = typeof MEMBERSHIP_STATUSES[number]
-
 export const OPEN_JOB_STATUSES = ['scheduled', 'assigned', 'en_route', 'on_site'] as const
 
 export interface TeamMember {
@@ -8,21 +5,21 @@ export interface TeamMember {
   user_id: string
   role: string
   email: string
-  status: MembershipStatus
+  active: boolean
 }
 
-export function normalizeMembershipStatus(status: string | null | undefined): MembershipStatus {
-  return status === 'inactive' ? 'inactive' : 'active'
+export function normalizeActive(active: boolean | null | undefined): boolean {
+  return active !== false
 }
 
-export function isActiveMember(member: Pick<TeamMember, 'status'>): boolean {
-  return normalizeMembershipStatus(member.status) === 'active'
+export function isActiveMember(member: Pick<TeamMember, 'active'>): boolean {
+  return normalizeActive(member.active)
 }
 
 /** True when this member is an active admin and no other active admin exists. */
 export function isLastActiveAdmin(
-  member: Pick<TeamMember, 'membership_id' | 'role' | 'status'>,
-  members: Array<Pick<TeamMember, 'membership_id' | 'role' | 'status'>>,
+  member: Pick<TeamMember, 'membership_id' | 'role' | 'active'>,
+  members: Array<Pick<TeamMember, 'membership_id' | 'role' | 'active'>>,
 ): boolean {
   if (member.role !== 'admin' || !isActiveMember(member)) return false
   return !members.some(other =>
@@ -33,8 +30,8 @@ export function isLastActiveAdmin(
 }
 
 export function canDeactivateOrRemove(
-  member: Pick<TeamMember, 'membership_id' | 'role' | 'status'>,
-  members: Array<Pick<TeamMember, 'membership_id' | 'role' | 'status'>>,
+  member: Pick<TeamMember, 'membership_id' | 'role' | 'active'>,
+  members: Array<Pick<TeamMember, 'membership_id' | 'role' | 'active'>>,
 ): boolean {
   return !isLastActiveAdmin(member, members)
 }

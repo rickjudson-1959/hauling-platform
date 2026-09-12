@@ -27,7 +27,7 @@ export default function LoginPage() {
       .from('memberships')
       .select('role')
       .eq('user_id', data.user.id)
-      .eq('status', 'active')
+      .eq('active', true)
       .maybeSingle()
 
     if (!membership) {

@@ -62,7 +62,7 @@ describe('LoginPage active membership gate', () => {
     await waitFor(() => {
       expect(mockSignOut).toHaveBeenCalled()
     })
-    expect(chain.eq).toHaveBeenCalledWith('status', 'active')
+    expect(chain.eq).toHaveBeenCalledWith('active', true)
     expect(screen.getByText(/Your account is not active on a team/)).toBeInTheDocument()
     expect(mockNavigate).not.toHaveBeenCalled()
   })

@@ -401,24 +401,24 @@ export type Database = {
       }
       memberships: {
         Row: {
+          active: boolean
           id: string
           org_id: string
           role: string
-          status: string
           user_id: string
         }
         Insert: {
+          active?: boolean
           id?: string
           org_id: string
           role: string
-          status?: string
           user_id: string
         }
         Update: {
+          active?: boolean
           id?: string
           org_id?: string
           role?: string
-          status?: string
           user_id?: string
         }
         Relationships: [
@@ -515,10 +515,10 @@ export type Database = {
       org_members: {
         Args: never
         Returns: {
+          active: boolean
           email: string
           membership_id: string
           role: string
-          status: string
           user_id: string
         }[]
       }

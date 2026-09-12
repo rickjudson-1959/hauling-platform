@@ -30,21 +30,21 @@ const members = [
     user_id: 'user-admin',
     role: 'admin',
     email: 'pat@hauling.local',
-    status: 'active',
+    active: true,
   },
   {
     membership_id: 'mem-driver',
     user_id: 'user-driver',
     role: 'driver',
     email: 'kim@hauling.local',
-    status: 'active',
+    active: true,
   },
   {
     membership_id: 'mem-inactive',
     user_id: 'user-old',
     role: 'driver',
     email: 'lee@hauling.local',
-    status: 'inactive',
+    active: false,
   },
 ]
 
@@ -141,7 +141,7 @@ describe('TeamSection', () => {
         user_id: 'user-admin-2',
         role: 'admin',
         email: 'sam@hauling.local',
-        status: 'active',
+        active: true,
       },
     ]
     mockRpc.mockImplementation((fn: string) => {

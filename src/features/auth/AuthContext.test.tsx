@@ -74,7 +74,7 @@ describe('AuthContext', () => {
     expect(screen.getByTestId('role').textContent).toBe('dispatcher')
     const chain = mockFrom.mock.results[0]?.value as { eq: ReturnType<typeof vi.fn> }
     expect(chain.eq).toHaveBeenCalledWith('user_id', 'user-1')
-    expect(chain.eq).toHaveBeenCalledWith('status', 'active')
+    expect(chain.eq).toHaveBeenCalledWith('active', true)
   })
 
   it('treats an inactive membership as no org access', async () => {

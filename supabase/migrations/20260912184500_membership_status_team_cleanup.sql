@@ -1,4 +1,7 @@
 -- Soft-deactivate team members without deleting auth.users.
+-- Karl confirmed public.memberships is currently ONLY id, org_id, user_id, role.
+-- This migration adds active boolean NOT NULL DEFAULT true.
+--
 -- jobs.driver_id references memberships(id) WITHOUT cascade, so deactivate/remove
 -- must null driver_id before a membership row can be deleted.
 -- invoice_audit_log.changed_by references auth.users WITHOUT cascade, which is
@@ -8,25 +11,10 @@
 -- before deploying the Team UI. Do not apply from a ticket-01 / Stripe branch.
 
 alter table public.memberships
-  add column if not exists status text not null default 'active';
+  add column if not exists active boolean not null default true;
 
-do $$
-begin
-  if not exists (
-    select 1
-    from pg_constraint
-    where conname = 'memberships_status_check'
-      and conrelid = 'public.memberships'::regclass
-  ) then
-    alter table public.memberships
-      add constraint memberships_status_check
-      check (status in ('active', 'inactive'));
-  end if;
-end
-$$;
-
-create index if not exists memberships_org_id_status_idx
-  on public.memberships (org_id, status);
+create index if not exists memberships_org_id_active_idx
+  on public.memberships (org_id, active);
 
 -- Org access helpers ignore inactive memberships so the next request has no org.
 create or replace function public.my_org_id()
@@ -39,7 +27,7 @@ as $func$
   select org_id
   from memberships
   where user_id = auth.uid()
-    and status = 'active'
+    and active = true
   limit 1
 $func$;
 
@@ -53,7 +41,7 @@ as $func$
   select role
   from memberships
   where user_id = auth.uid()
-    and status = 'active'
+    and active = true
   limit 1
 $func$;
 
@@ -67,11 +55,11 @@ as $func$
   select id
   from memberships
   where user_id = auth.uid()
-    and status = 'active'
+    and active = true
   limit 1
 $func$;
 
--- Return type gains status, so drop first.
+-- Return type gains active, so drop first.
 drop function if exists public.org_members();
 
 create function public.org_members()
@@ -80,14 +68,14 @@ returns table(
   user_id uuid,
   role text,
   email text,
-  status text
+  active boolean
 )
 language sql
 stable
 security definer
 set search_path = public
 as $func$
-  select m.id as membership_id, m.user_id, m.role, u.email, m.status
+  select m.id as membership_id, m.user_id, m.role, u.email, m.active
   from memberships m
   join auth.users u on u.id = m.user_id
   where m.org_id = my_org_id()
@@ -106,7 +94,7 @@ as $func$
   join auth.users u on u.id = m.user_id
   where m.org_id = my_org_id()
     and m.role = 'driver'
-    and m.status = 'active'
+    and m.active = true
   order by u.email
 $func$;
 
@@ -120,7 +108,7 @@ stable
 set search_path = public
 as $func$
 begin
-  if p_membership.role is distinct from 'admin' or p_membership.status is distinct from 'active' then
+  if p_membership.role is distinct from 'admin' or p_membership.active is not true then
     return;
   end if;
 
@@ -130,7 +118,7 @@ begin
     where org_id = p_membership.org_id
       and id <> p_membership.id
       and role = 'admin'
-      and status = 'active'
+      and active = true
   ) then
     raise exception 'Cannot deactivate or remove the last admin on this team'
       using errcode = 'P0001';
@@ -180,15 +168,15 @@ begin
 
   if TG_OP = 'UPDATE' then
     if OLD.role = 'admin'
-       and OLD.status = 'active'
+       and OLD.active = true
        and (
-         NEW.status = 'inactive'
+         NEW.active = false
          or NEW.role is distinct from 'admin'
        ) then
       perform public.assert_not_last_active_admin(OLD);
     end if;
 
-    if NEW.status = 'inactive' and OLD.status is distinct from 'inactive' then
+    if NEW.active = false and OLD.active is distinct from false then
       perform public.unassign_membership_jobs(NEW.id, NEW.org_id, true);
     end if;
     return NEW;
@@ -220,7 +208,7 @@ begin
   end if;
 
   update memberships
-  set status = 'inactive'
+  set active = false
   where id = p_membership_id
     and org_id = v_org_id;
 
@@ -246,7 +234,7 @@ begin
   end if;
 
   update memberships
-  set status = 'active'
+  set active = true
   where id = p_membership_id
     and org_id = v_org_id;
 

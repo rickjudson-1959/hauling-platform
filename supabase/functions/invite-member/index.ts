@@ -43,9 +43,9 @@ async function handle(req: Request) {
   // Verify caller is an admin of their org
   const { data: callerMem, error: memError } = await admin
     .from('memberships')
-    .select('org_id, role, status')
+    .select('org_id, role, active')
     .eq('user_id', user.id)
-    .eq('status', 'active')
+    .eq('active', true)
     .single()
   if (memError || !callerMem) return json({ error: 'Membership not found' }, 403)
   if (callerMem.role !== 'admin') return json({ error: 'Only admins can invite members' }, 403)
@@ -90,12 +90,12 @@ async function handle(req: Request) {
   // Guard against duplicate membership in this org
   const { data: existingMem } = await admin
     .from('memberships')
-    .select('id, status')
+    .select('id, active')
     .eq('org_id', callerMem.org_id)
     .eq('user_id', inviteeId)
     .maybeSingle()
   if (existingMem) {
-    if (existingMem.status === 'inactive') {
+    if (existingMem.active === false) {
       return json({
         error: `${email} is already on this team but inactive. Use Reactivate on the Team page.`,
       }, 409)

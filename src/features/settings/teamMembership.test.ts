@@ -3,7 +3,7 @@ import {
   canDeactivateOrRemove,
   isActiveMember,
   isLastActiveAdmin,
-  normalizeMembershipStatus,
+  normalizeActive,
   OPEN_JOB_STATUSES,
 } from './teamMembership'
 
@@ -12,31 +12,31 @@ function member(partial: Partial<{
   user_id: string
   role: string
   email: string
-  status: 'active' | 'inactive'
+  active: boolean
 }> = {}) {
   return {
     membership_id: 'm-1',
     user_id: 'u-1',
     role: 'driver',
     email: 'driver@example.com',
-    status: 'active' as const,
+    active: true,
     ...partial,
   }
 }
 
-describe('normalizeMembershipStatus', () => {
-  it('treats missing or unknown values as active', () => {
-    expect(normalizeMembershipStatus(undefined)).toBe('active')
-    expect(normalizeMembershipStatus(null)).toBe('active')
-    expect(normalizeMembershipStatus('active')).toBe('active')
-    expect(normalizeMembershipStatus('inactive')).toBe('inactive')
+describe('normalizeActive', () => {
+  it('treats missing or true as active', () => {
+    expect(normalizeActive(undefined)).toBe(true)
+    expect(normalizeActive(null)).toBe(true)
+    expect(normalizeActive(true)).toBe(true)
+    expect(normalizeActive(false)).toBe(false)
   })
 })
 
 describe('isActiveMember', () => {
-  it('is true only for the active status', () => {
-    expect(isActiveMember(member({ status: 'active' }))).toBe(true)
-    expect(isActiveMember(member({ status: 'inactive' }))).toBe(false)
+  it('is true only when active is not false', () => {
+    expect(isActiveMember(member({ active: true }))).toBe(true)
+    expect(isActiveMember(member({ active: false }))).toBe(false)
   })
 })
 
@@ -53,16 +53,16 @@ describe('isLastActiveAdmin', () => {
   })
 
   it('ignores inactive admins when deciding who is last', () => {
-    const active = member({ membership_id: 'admin-1', role: 'admin' })
+    const activeAdmin = member({ membership_id: 'admin-1', role: 'admin' })
     const inactive = member({
       membership_id: 'admin-2',
       user_id: 'u-2',
       role: 'admin',
       email: 'old@example.com',
-      status: 'inactive',
+      active: false,
     })
-    expect(isLastActiveAdmin(active, [active, inactive])).toBe(true)
-    expect(isLastActiveAdmin(inactive, [active, inactive])).toBe(false)
+    expect(isLastActiveAdmin(activeAdmin, [activeAdmin, inactive])).toBe(true)
+    expect(isLastActiveAdmin(inactive, [activeAdmin, inactive])).toBe(false)
   })
 
   it('is false for drivers and dispatchers', () => {
@@ -93,7 +93,7 @@ describe('canDeactivateOrRemove', () => {
     const former = member({
       membership_id: 'admin-2',
       role: 'admin',
-      status: 'inactive',
+      active: false,
     })
     expect(canDeactivateOrRemove(former, [admin, former])).toBe(true)
   })
