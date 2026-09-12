@@ -501,6 +501,14 @@ export type Database = {
         Returns: string
       }
       deactivate_membership: { Args: { p_membership_id: string }; Returns: undefined }
+      my_active_membership: {
+        Args: never
+        Returns: {
+          org_id: string
+          org_name: string
+          role: string
+        }[]
+      }
       my_membership_id: { Args: never; Returns: string }
       my_org_id: { Args: never; Returns: string }
       my_role: { Args: never; Returns: string }

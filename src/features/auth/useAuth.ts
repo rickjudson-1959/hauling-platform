@@ -11,6 +11,8 @@ export interface AuthContextValue {
   user: User | null
   org: Org | null
   role: string | null
+  /** Set when membership loading failed; not the same as an inactive membership. */
+  membershipError: string | null
   loading: boolean
   signOut: () => Promise<void>
 }

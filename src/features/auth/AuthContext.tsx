@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { Session, User } from '@supabase/supabase-js'
 import { supabase } from '../../shared/lib/supabase'
+import { fetchActiveMembership } from './activeMembership'
 import { AuthContext } from './useAuth'
 import type { Org } from './useAuth'
 
@@ -9,19 +10,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [org, setOrg] = useState<Org | null>(null)
   const [role, setRole] = useState<string | null>(null)
+  const [membershipError, setMembershipError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
-  const fetchMembership = useCallback(async (userId: string) => {
-    const { data } = (await supabase
-      .from('memberships')
-      .select('role, orgs(id, name)')
-      .eq('user_id', userId)
-      .eq('active', true)
-      .maybeSingle()) as { data: { role: string; orgs: Org } | null; error: unknown }
+  const fetchMembership = useCallback(async () => {
+    const result = await fetchActiveMembership(supabase)
+    if (result.status === 'error') {
+      setMembershipError(result.message)
+      setLoading(false)
+      return
+    }
 
-    if (data) {
-      setRole(data.role)
-      setOrg(data.orgs as Org)
+    setMembershipError(null)
+    if (result.status === 'active') {
+      setRole(result.membership.role)
+      setOrg({ id: result.membership.orgId, name: result.membership.orgName })
     } else {
       setRole(null)
       setOrg(null)
@@ -34,7 +37,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSession(session)
       setUser(session?.user ?? null)
       if (session?.user) {
-        fetchMembership(session.user.id)
+        fetchMembership()
       } else {
         setLoading(false)
       }
@@ -45,10 +48,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(session?.user ?? null)
       if (session?.user) {
         if (event === 'SIGNED_IN') setLoading(true)
-        fetchMembership(session.user.id)
+        fetchMembership()
       } else {
         setOrg(null)
         setRole(null)
+        setMembershipError(null)
         setLoading(false)
       }
     })
@@ -61,7 +65,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ session, user, org, role, loading, signOut }}>
+    <AuthContext.Provider value={{ session, user, org, role, membershipError, loading, signOut }}>
       {children}
     </AuthContext.Provider>
   )

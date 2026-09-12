@@ -50,6 +50,7 @@ describe('ProtectedRoute', () => {
     mockUseAuth.mockReturnValue({
       session: { user: { id: 'u1' } },
       role: null,
+      membershipError: null,
       loading: false,
       signOut: vi.fn(),
     })
@@ -57,6 +58,22 @@ describe('ProtectedRoute', () => {
     expect(screen.getByText('No team access')).toBeInTheDocument()
     expect(screen.queryByText('Secret')).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Sign out' })).toBeInTheDocument()
+  })
+
+  it('does not claim the membership is inactive when loading it failed', () => {
+    mockUseAuth.mockReturnValue({
+      session: { user: { id: 'u1' } },
+      role: null,
+      membershipError: 'Could not load your team membership. (JWT expired)',
+      loading: false,
+      signOut: vi.fn(),
+    })
+    renderInRouter(<ProtectedRoute><div>Secret</div></ProtectedRoute>)
+    expect(screen.getByText('Could not load team access')).toBeInTheDocument()
+    expect(screen.getByText(/JWT expired/)).toBeInTheDocument()
+    expect(screen.queryByText('No team access')).not.toBeInTheDocument()
+    expect(screen.queryByText(/not active on a team/)).not.toBeInTheDocument()
+    expect(screen.queryByText('Secret')).not.toBeInTheDocument()
   })
 
   it('redirects drivers away from staff-only routes to /driver', () => {

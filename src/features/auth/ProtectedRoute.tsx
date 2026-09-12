@@ -8,7 +8,7 @@ interface Props {
 }
 
 export default function ProtectedRoute({ children, staffOnly }: Props) {
-  const { session, role, loading, signOut } = useAuth()
+  const { session, role, membershipError, loading, signOut } = useAuth()
 
   if (loading) {
     return (
@@ -19,6 +19,24 @@ export default function ProtectedRoute({ children, staffOnly }: Props) {
   }
 
   if (!session) return <Navigate to="/login" replace />
+
+  if (membershipError && !role) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="max-w-md space-y-3 text-center">
+          <h1 className="text-lg font-semibold text-gray-900">Could not load team access</h1>
+          <p className="text-sm text-gray-600">{membershipError}</p>
+          <button
+            type="button"
+            onClick={() => void signOut()}
+            className="min-h-10 rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+          >
+            Sign out
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   if (!role) {
     return (
