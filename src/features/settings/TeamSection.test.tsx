@@ -21,7 +21,7 @@ vi.mock('../../shared/lib/supabase', () => ({
   },
 }))
 
-import TeamSection from './TeamSection'
+import TeamSection, { INVITE_SET_PASSWORD_REDIRECT } from './TeamSection'
 
 const adminUser = { id: 'user-admin' }
 const members = [
@@ -131,6 +131,27 @@ describe('TeamSection', () => {
       expect(mockRpc).toHaveBeenCalledWith('remove_membership', { p_membership_id: 'mem-driver' })
     })
     expect(screen.queryByText('kim@hauling.local')).not.toBeInTheDocument()
+  })
+
+  it('sends invite redirectTo to the production set-password page', async () => {
+    const user = userEvent.setup()
+    mockInvoke.mockResolvedValue({ data: { success: true, isNew: true, inviteLink: 'https://example.test/invite' }, error: null })
+    render(<TeamSection />)
+    await waitFor(() => expect(screen.getByText('kim@hauling.local')).toBeInTheDocument())
+
+    await user.type(screen.getByPlaceholderText('driver@example.com'), 'new@hauling.local')
+    await user.click(screen.getByRole('button', { name: 'Invite' }))
+
+    await waitFor(() => {
+      expect(mockInvoke).toHaveBeenCalledWith('invite-member', {
+        body: {
+          email: 'new@hauling.local',
+          role: 'driver',
+          redirectTo: INVITE_SET_PASSWORD_REDIRECT,
+        },
+      })
+    })
+    expect(INVITE_SET_PASSWORD_REDIRECT).toBe('https://hauling-platform.vercel.app/set-password')
   })
 
   it('lets a second admin deactivate themselves', async () => {
