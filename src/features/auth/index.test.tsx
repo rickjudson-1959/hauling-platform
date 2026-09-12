@@ -30,6 +30,7 @@ describe('LoginPage', () => {
     expect(screen.getAllByText('invoices').length).toBeGreaterThan(0)
     expect(screen.getByLabelText('Email')).toBeInTheDocument()
     expect(screen.getByLabelText('Password')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Show password' })).toHaveAttribute('aria-pressed', 'false')
     expect(screen.getByRole('button', { name: 'Sign in' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Create an account' })).toHaveAttribute('href', '/signup')
     expect(document.body.textContent).not.toMatch(/book a bin/i)

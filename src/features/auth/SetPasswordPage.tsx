@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../../shared/lib/supabase'
 import { useAuth } from './useAuth'
 import { homePath } from './homePath'
+import PasswordInput from './PasswordInput'
 
 export default function SetPasswordPage() {
   const navigate = useNavigate()
@@ -78,32 +79,34 @@ export default function SetPasswordPage() {
         )}
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="set-password-new" className="block text-sm font-medium text-gray-700 mb-1">
             New password
           </label>
-          <input
-            type="password"
+          <PasswordInput
+            id="set-password-new"
             value={password}
             onChange={e => setPassword(e.target.value)}
             required
             minLength={8}
             autoComplete="new-password"
-            className="block w-full border border-gray-300 rounded-lg px-3 py-3.5 text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="block w-full border border-gray-300 rounded-lg py-3.5 pl-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="set-password-confirm" className="block text-sm font-medium text-gray-700 mb-1">
             Confirm password
           </label>
-          <input
-            type="password"
+          <PasswordInput
+            id="set-password-confirm"
             value={confirm}
             onChange={e => setConfirm(e.target.value)}
             required
             minLength={8}
             autoComplete="new-password"
-            className="block w-full border border-gray-300 rounded-lg px-3 py-3.5 text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
+            showLabel="Show confirm password"
+            hideLabel="Hide confirm password"
+            className="block w-full border border-gray-300 rounded-lg py-3.5 pl-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
