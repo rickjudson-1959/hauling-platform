@@ -27,10 +27,18 @@ export default function LoginPage() {
       .from('memberships')
       .select('role')
       .eq('user_id', data.user.id)
-      .single()
+      .eq('status', 'active')
+      .maybeSingle()
+
+    if (!membership) {
+      await supabase.auth.signOut()
+      setLoading(false)
+      setError('Your account is not active on a team. Ask your office admin to reactivate you or invite you again.')
+      return
+    }
 
     setLoading(false)
-    navigate(homePath(membership?.role), { replace: true })
+    navigate(homePath(membership.role), { replace: true })
   }
 
   return (

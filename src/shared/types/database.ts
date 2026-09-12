@@ -404,18 +404,21 @@ export type Database = {
           id: string
           org_id: string
           role: string
+          status: string
           user_id: string
         }
         Insert: {
           id?: string
           org_id: string
           role: string
+          status?: string
           user_id: string
         }
         Update: {
           id?: string
           org_id?: string
           role?: string
+          status?: string
           user_id?: string
         }
         Relationships: [
@@ -497,6 +500,7 @@ export type Database = {
         Args: { p_customer_id: string; p_job_ids: string[]; p_notes?: string | null }
         Returns: string
       }
+      deactivate_membership: { Args: { p_membership_id: string }; Returns: undefined }
       my_membership_id: { Args: never; Returns: string }
       my_org_id: { Args: never; Returns: string }
       my_role: { Args: never; Returns: string }
@@ -514,9 +518,12 @@ export type Database = {
           email: string
           membership_id: string
           role: string
+          status: string
           user_id: string
         }[]
       }
+      reactivate_membership: { Args: { p_membership_id: string }; Returns: undefined }
+      remove_membership: { Args: { p_membership_id: string }; Returns: undefined }
       update_invoice_status: {
         Args: { p_invoice_id: string; p_new_status: string }
         Returns: undefined

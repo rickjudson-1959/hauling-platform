@@ -40,10 +40,23 @@ describe('ProtectedRoute', () => {
     expect(screen.queryByText('Secret')).not.toBeInTheDocument()
   })
 
-  it('renders children when a session exists', () => {
-    mockUseAuth.mockReturnValue({ session: { user: { id: 'u1' } }, loading: false })
+  it('renders children when a session and active role exist', () => {
+    mockUseAuth.mockReturnValue({ session: { user: { id: 'u1' } }, role: 'dispatcher', loading: false })
     renderInRouter(<ProtectedRoute><div>Secret</div></ProtectedRoute>)
     expect(screen.getByText('Secret')).toBeInTheDocument()
+  })
+
+  it('blocks org access when the session has no active membership', () => {
+    mockUseAuth.mockReturnValue({
+      session: { user: { id: 'u1' } },
+      role: null,
+      loading: false,
+      signOut: vi.fn(),
+    })
+    renderInRouter(<ProtectedRoute><div>Secret</div></ProtectedRoute>)
+    expect(screen.getByText('No team access')).toBeInTheDocument()
+    expect(screen.queryByText('Secret')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Sign out' })).toBeInTheDocument()
   })
 
   it('redirects drivers away from staff-only routes to /driver', () => {

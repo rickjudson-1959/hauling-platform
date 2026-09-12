@@ -92,7 +92,7 @@ export default function SettingsPage() {
 
   return (
     <Layout>
-      <div className="space-y-8 max-w-2xl">
+      <div className="space-y-8 max-w-3xl">
         <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
 
         <section>
