@@ -1,17 +1,41 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { supabase } from '../../shared/lib/supabase'
 import { useAuth } from './useAuth'
 import { homePath } from './homePath'
 import PasswordInput from './PasswordInput'
 
+/** Copy-only: hash/query hints from expired invite vs password-reset links. */
+function invalidLinkCopy(search: string, hash: string) {
+  const query = new URLSearchParams(search)
+  const fragment = new URLSearchParams(hash.startsWith('#') ? hash.slice(1) : hash)
+  const type = query.get('type') ?? fragment.get('type')
+  const errorDescription =
+    query.get('error_description') ?? fragment.get('error_description') ?? ''
+  const recovery = type === 'recovery' || /recovery|reset/i.test(errorDescription)
+
+  if (recovery) {
+    return {
+      title: 'This password-reset link is invalid or expired',
+      body: 'Sign in if you already have a password, or ask the office for a new password-reset email.',
+    }
+  }
+
+  return {
+    title: 'This link is invalid or expired',
+    body: 'Sign in if you already have a password, or ask the office for a new invite or password-reset email.',
+  }
+}
+
 export default function SetPasswordPage() {
   const navigate = useNavigate()
+  const { search, hash } = useLocation()
   const { session, role, loading } = useAuth()
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
+  const noSessionCopy = invalidLinkCopy(search, hash)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -46,9 +70,9 @@ export default function SetPasswordPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
         <div className="bg-white p-8 rounded-lg shadow w-full max-w-sm space-y-4">
-          <h1 className="text-2xl font-bold text-gray-900">Invite link expired</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{noSessionCopy.title}</h1>
           <p className="text-sm text-gray-600">
-            Ask your office to send a new invite, or sign in if you already set a password.
+            {noSessionCopy.body}
           </p>
           <Link
             to="/login"
