@@ -97,4 +97,28 @@ describe('JobDetail on-site pay', () => {
     })
     expect(screen.queryByRole('button', { name: 'Collect payment' })).not.toBeInTheDocument()
   })
+
+  it('places Payment above Photo and Signature so it is not buried', async () => {
+    const { container } = renderDetail()
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Collect payment' })).toBeInTheDocument()
+    })
+    const headings = Array.from(container.querySelectorAll('h2')).map(h => h.textContent)
+    const paymentIndex = headings.indexOf('Payment')
+    const photoIndex = headings.indexOf('Photo')
+    const signatureIndex = headings.indexOf('Signature')
+    expect(paymentIndex).toBeGreaterThan(-1)
+    expect(paymentIndex).toBeLessThan(photoIndex)
+    expect(paymentIndex).toBeLessThan(signatureIndex)
+  })
+
+  it('renders Collect payment synchronously, with no lazy-load gap to vanish into', async () => {
+    renderDetail()
+    await waitFor(() => {
+      expect(screen.getByText('River Farms')).toBeInTheDocument()
+    })
+    // No act()/await needed for CollectPayment to appear: it is not behind
+    // Suspense, so it can never silently fail to hydrate after Photo/Signature.
+    expect(screen.getByRole('button', { name: 'Collect payment' })).toBeInTheDocument()
+  })
 })
