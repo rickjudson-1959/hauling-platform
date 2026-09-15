@@ -206,7 +206,7 @@ export async function applyOnsitePaymentSuccess(
   }
 }
 
-async function upsertPaidInvoice(
+export async function upsertPaidInvoice(
   admin: SupabaseClient,
   args: {
     job: {

@@ -56,7 +56,7 @@ A Supabase `stripe-webhook` function remains as a backup. Register the Vercel `/
 - Payment Element charges CAD in Stripe TEST.
 - Paid is recorded only after webhook signature verify and/or server-side PaymentIntent retrieve. Client success is not trusted alone.
 - Success is idempotent on Stripe event id (or `retrieve:<pi_id>`) plus one succeeded payments row per job. Receipt + invoice copy email at most once.
-- **Skip for now** leaves the job unpaid. No fake paid.
+- **Skip for now** used to just leave the job unpaid. As of Ticket 2, it emails the customer an invoice pay link instead (Path B) — see `docs/phase2-ticket-02-invoice-email.md`. Either way, no fake paid.
 
 ## Env vars
 

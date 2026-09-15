@@ -28,6 +28,8 @@ interface JobPayFields {
   price: number | null
   tax_amount: number | null
   tax_label: string | null
+  stripe_invoice_id: string | null
+  invoice_hosted_url: string | null
 }
 
 interface Props {
@@ -44,10 +46,14 @@ export default function CollectPayment({ job, onJobReload }: Props) {
   const [publishableKey, setPublishableKey] = useState<string | null>(null)
   const [paymentIntentId, setPaymentIntentId] = useState<string | null>(null)
   const [working, setWorking] = useState(false)
-  const [skipped, setSkipped] = useState(false)
+  const [skipping, setSkipping] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const paid = job.payment_status === 'paid'
+  // 'awaiting_payment' is also set briefly while a driver is mid on-site
+  // collect (before Pay now is confirmed), so only treat it as an emailed
+  // invoice when a Stripe Invoice actually exists for this job.
+  const invoiceSent = job.payment_status === 'awaiting_payment' && !!job.stripe_invoice_id
   const breakdown = chargeBreakdown(
     amountInput !== '' ? amountInput : job.price,
     job.tax_amount,
@@ -57,7 +63,6 @@ export default function CollectPayment({ job, onJobReload }: Props) {
 
   async function startCollect() {
     setError(null)
-    setSkipped(false)
     if (!breakdown) {
       setError('Enter the job amount before collecting payment.')
       return
@@ -87,20 +92,20 @@ export default function CollectPayment({ job, onJobReload }: Props) {
 
   async function skip() {
     setError(null)
-    const { error: skipErr } = await supabase
-      .from('jobs')
-      .update({ payment_status: 'unpaid' })
-      .eq('id', job.id)
-      .eq('org_id', job.org_id)
-    if (skipErr) {
-      setError(skipErr.message)
+    setSkipping(true)
+    const { data, error: fnError } = await supabase.functions.invoke('create-invoice-email', {
+      body: { jobId: job.id },
+    })
+    setSkipping(false)
+    if (fnError || data?.error) {
+      setError(fnError?.message ?? data?.error ?? 'Could not email an invoice. Try again.')
       return
     }
     setCollecting(false)
     setClientSecret(null)
     setPublishableKey(null)
     setPaymentIntentId(null)
-    setSkipped(true)
+    await onJobReload()
   }
 
   if (paid) {
@@ -110,6 +115,29 @@ export default function CollectPayment({ job, onJobReload }: Props) {
         <p className="text-lg font-semibold text-green-700">Paid</p>
         {breakdown && (
           <p className="text-sm text-gray-600">{formatCad(breakdown.totalDollars)}</p>
+        )}
+      </section>
+    )
+  }
+
+  if (invoiceSent) {
+    return (
+      <section className="bg-white rounded-xl border border-blue-200 p-4 space-y-2">
+        <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Payment</h2>
+        <p className="text-lg font-semibold text-blue-700">Invoice emailed</p>
+        {breakdown && (
+          <p className="text-sm text-gray-600">{formatCad(breakdown.totalDollars)} due on receipt</p>
+        )}
+        <p className="text-sm text-gray-500">Waiting on the customer to pay the emailed invoice.</p>
+        {job.invoice_hosted_url && (
+          <a
+            href={job.invoice_hosted_url}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-block text-sm font-medium text-blue-700 active:text-blue-900"
+          >
+            View invoice
+          </a>
         )}
       </section>
     )
@@ -145,12 +173,6 @@ export default function CollectPayment({ job, onJobReload }: Props) {
         </div>
       )}
 
-      {skipped && (
-        <p className="text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-lg p-3">
-          Payment skipped. This job is not paid.
-        </p>
-      )}
-
       {error && (
         <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg p-3">
           {error}
@@ -162,7 +184,7 @@ export default function CollectPayment({ job, onJobReload }: Props) {
           <button
             type="button"
             onClick={startCollect}
-            disabled={working}
+            disabled={working || skipping}
             className="w-full min-h-14 py-4 bg-green-600 active:bg-green-700 text-white text-lg font-semibold rounded-xl disabled:opacity-50"
           >
             {working ? 'Starting…' : 'Collect payment'}
@@ -170,10 +192,10 @@ export default function CollectPayment({ job, onJobReload }: Props) {
           <button
             type="button"
             onClick={skip}
-            disabled={working}
+            disabled={working || skipping}
             className="w-full min-h-14 py-4 border-2 border-gray-300 rounded-xl text-base font-medium text-gray-700 active:bg-gray-50 disabled:opacity-50"
           >
-            Skip for now
+            {skipping ? 'Emailing invoice…' : 'Skip for now'}
           </button>
         </div>
       ) : clientSecret && publishableKey ? (

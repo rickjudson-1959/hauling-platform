@@ -2,25 +2,14 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const { mockInvoke, mockFromUpdate, mockConfirmPayment } = vi.hoisted(() => ({
+const { mockInvoke, mockConfirmPayment } = vi.hoisted(() => ({
   mockInvoke: vi.fn(),
-  mockFromUpdate: vi.fn(),
   mockConfirmPayment: vi.fn(),
 }))
 
 vi.mock('../../shared/lib/supabase', () => ({
   supabase: {
     functions: { invoke: mockInvoke },
-    from: () => {
-      const chain = {
-        update: mockFromUpdate,
-        eq: vi.fn(),
-      }
-      mockFromUpdate.mockReturnValue(chain)
-      chain.eq.mockReturnValue(chain)
-      Object.assign(chain, { then: (resolve: (v: { error: null }) => void) => resolve({ error: null }) })
-      return chain
-    },
   },
 }))
 
@@ -45,6 +34,8 @@ const unpaidJob = {
   price: 150,
   tax_amount: null,
   tax_label: null,
+  stripe_invoice_id: null,
+  invoice_hosted_url: null,
 }
 
 describe('CollectPayment', () => {
@@ -65,18 +56,12 @@ describe('CollectPayment', () => {
   })
 
   it('shows Collect payment and Skip for now without marking paid', async () => {
-    const user = userEvent.setup()
-    const onJobReload = vi.fn().mockResolvedValue(undefined)
-    render(<CollectPayment job={unpaidJob} onJobReload={onJobReload} />)
+    render(<CollectPayment job={unpaidJob} onJobReload={vi.fn()} />)
 
     expect(screen.getByRole('button', { name: 'Collect payment' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Skip for now' })).toBeInTheDocument()
     expect(screen.queryByText('Paid')).not.toBeInTheDocument()
     expect(screen.getByDisplayValue('150')).toBeInTheDocument()
-
-    await user.click(screen.getByRole('button', { name: 'Skip for now' }))
-    expect(await screen.findByText('Payment skipped. This job is not paid.')).toBeInTheDocument()
-    expect(screen.queryByText('Paid')).not.toBeInTheDocument()
-    expect(onJobReload).not.toHaveBeenCalled()
   })
 
   it('starts Payment Element after Collect payment', async () => {
@@ -153,5 +138,77 @@ describe('CollectPayment', () => {
   it('user-facing copy has no em dashes', () => {
     const { container } = render(<CollectPayment job={unpaidJob} onJobReload={vi.fn()} />)
     expect(container.textContent).not.toMatch(/—/)
+  })
+
+  describe('Skip for now (Path B invoice email)', () => {
+    it('emails an invoice and reloads the job on success', async () => {
+      const user = userEvent.setup()
+      const onJobReload = vi.fn().mockResolvedValue(undefined)
+      mockInvoke.mockResolvedValue({
+        data: { stripeInvoiceId: 'in_test', hostedInvoiceUrl: 'https://pay.stripe.com/in_test', alreadySent: false },
+        error: null,
+      })
+
+      render(<CollectPayment job={unpaidJob} onJobReload={onJobReload} />)
+      await user.click(screen.getByRole('button', { name: 'Skip for now' }))
+
+      await waitFor(() => {
+        expect(mockInvoke).toHaveBeenCalledWith('create-invoice-email', {
+          body: { jobId: 'job-1' },
+        })
+      })
+      expect(onJobReload).toHaveBeenCalled()
+    })
+
+    it('shows a clear error and does not reload when the customer has no email on file', async () => {
+      const user = userEvent.setup()
+      const onJobReload = vi.fn().mockResolvedValue(undefined)
+      mockInvoke.mockResolvedValue({
+        data: { error: 'Customer has no email on file. Cannot send an invoice.' },
+        error: null,
+      })
+
+      render(<CollectPayment job={unpaidJob} onJobReload={onJobReload} />)
+      await user.click(screen.getByRole('button', { name: 'Skip for now' }))
+
+      expect(await screen.findByText('Customer has no email on file. Cannot send an invoice.')).toBeInTheDocument()
+      expect(onJobReload).not.toHaveBeenCalled()
+      expect(screen.getByRole('button', { name: 'Collect payment' })).toBeInTheDocument()
+    })
+
+    it('does not send a second invoice when Skip is pressed again after one was already sent', () => {
+      // A second Skip call is idempotent server-side (create-invoice-email
+      // returns alreadySent instead of creating a new one), but once the job
+      // reloads as awaiting_payment with a stripe_invoice_id, the UI should
+      // not offer Collect/Skip at all anymore.
+      render(
+        <CollectPayment
+          job={{
+            ...unpaidJob,
+            payment_status: 'awaiting_payment',
+            stripe_invoice_id: 'in_test',
+            invoice_hosted_url: 'https://pay.stripe.com/in_test',
+          }}
+          onJobReload={vi.fn()}
+        />,
+      )
+      expect(screen.getByText('Invoice emailed')).toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: 'Skip for now' })).not.toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: 'Collect payment' })).not.toBeInTheDocument()
+      expect(screen.getByRole('link', { name: 'View invoice' })).toHaveAttribute(
+        'href',
+        'https://pay.stripe.com/in_test',
+      )
+    })
+
+    it('still offers Collect/Skip when awaiting_payment is from a mid-flight on-site collect, not an invoice', () => {
+      render(
+        <CollectPayment
+          job={{ ...unpaidJob, payment_status: 'awaiting_payment', stripe_invoice_id: null }}
+          onJobReload={vi.fn()}
+        />,
+      )
+      expect(screen.queryByText('Invoice emailed')).not.toBeInTheDocument()
+    })
   })
 })
