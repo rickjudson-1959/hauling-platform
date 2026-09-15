@@ -50,6 +50,8 @@ interface Job {
   payment_status: string
   tax_amount: number | null
   tax_label: string | null
+  stripe_invoice_id: string | null
+  invoice_hosted_url: string | null
   notes: string | null
   photo_url: string | null
   signature_url: string | null
@@ -60,7 +62,7 @@ interface Job {
 }
 
 const JOB_COLS =
-  'id, scheduled_for, site_address, status, quantity, price, payment_status, tax_amount, tax_label, notes, photo_url, signature_url, org_id, customers(name), haul_types(name,unit), trucks(label)'
+  'id, scheduled_for, site_address, status, quantity, price, payment_status, tax_amount, tax_label, stripe_invoice_id, invoice_hosted_url, notes, photo_url, signature_url, org_id, customers(name), haul_types(name,unit), trucks(label)'
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -380,6 +382,8 @@ export default function JobDetail() {
             price: job.price,
             tax_amount: job.tax_amount,
             tax_label: job.tax_label,
+            stripe_invoice_id: job.stripe_invoice_id,
+            invoice_hosted_url: job.invoice_hosted_url,
           }}
           onJobReload={load}
         />

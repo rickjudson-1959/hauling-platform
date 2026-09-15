@@ -30,6 +30,7 @@ export type Database = {
           notes: string | null
           org_id: string
           phone: string | null
+          stripe_customer_id: string | null
         }
         Insert: {
           billing_address?: string | null
@@ -41,6 +42,7 @@ export type Database = {
           notes?: string | null
           org_id: string
           phone?: string | null
+          stripe_customer_id?: string | null
         }
         Update: {
           billing_address?: string | null
@@ -52,6 +54,7 @@ export type Database = {
           notes?: string | null
           org_id?: string
           phone?: string | null
+          stripe_customer_id?: string | null
         }
         Relationships: [
           {
@@ -324,6 +327,8 @@ export type Database = {
           signature_url: string | null
           site_address: string | null
           status: string
+          stripe_invoice_id: string | null
+          invoice_hosted_url: string | null
           stripe_payment_intent_id: string | null
           tax_amount: number | null
           tax_label: string | null
@@ -346,6 +351,8 @@ export type Database = {
           signature_url?: string | null
           site_address?: string | null
           status?: string
+          stripe_invoice_id?: string | null
+          invoice_hosted_url?: string | null
           stripe_payment_intent_id?: string | null
           tax_amount?: number | null
           tax_label?: string | null
@@ -368,6 +375,8 @@ export type Database = {
           signature_url?: string | null
           site_address?: string | null
           status?: string
+          stripe_invoice_id?: string | null
+          invoice_hosted_url?: string | null
           stripe_payment_intent_id?: string | null
           tax_amount?: number | null
           tax_label?: string | null
@@ -456,6 +465,7 @@ export type Database = {
           status: string
           stripe_charge_id: string | null
           stripe_event_id: string | null
+          stripe_invoice_id: string | null
           stripe_payment_intent_id: string | null
         }
         Insert: {
@@ -470,6 +480,7 @@ export type Database = {
           status: string
           stripe_charge_id?: string | null
           stripe_event_id?: string | null
+          stripe_invoice_id?: string | null
           stripe_payment_intent_id?: string | null
         }
         Update: {
@@ -484,6 +495,7 @@ export type Database = {
           status?: string
           stripe_charge_id?: string | null
           stripe_event_id?: string | null
+          stripe_invoice_id?: string | null
           stripe_payment_intent_id?: string | null
         }
         Relationships: [
