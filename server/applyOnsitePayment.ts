@@ -171,12 +171,20 @@ export async function applyOnsitePaymentSuccess(
     .eq('org_id', input.orgId)
   if (jobUpErr) throw jobUpErr
 
-  const invoice = await upsertPaidInvoice(admin, {
-    job,
-    orgId: input.orgId,
-    amountDollars,
-    now,
-  })
+  // Invoice bookkeeping is best-effort: the on-site charge is already captured
+  // and the job already marked paid above, so a broken/missing invoicing
+  // schema must not turn a successful card charge into an error response.
+  let invoice: { id: string | null; number: string | null } = { id: null, number: null }
+  try {
+    invoice = await upsertPaidInvoice(admin, {
+      job,
+      orgId: input.orgId,
+      amountDollars,
+      now,
+    })
+  } catch (err) {
+    console.error('upsertPaidInvoice failed after successful on-site payment', err)
+  }
 
   const [{ data: customer }, { data: org }] = await Promise.all([
     job.customer_id
