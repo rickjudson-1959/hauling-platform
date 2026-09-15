@@ -110,10 +110,7 @@ async function handle(req: Request) {
       return json({ error: 'Job is already paid' }, 409)
     }
     const reusable = ['requires_payment_method', 'requires_confirmation', 'requires_action']
-    const isCardOnly = Array.isArray(existing.payment_method_types) &&
-      existing.payment_method_types.length === 1 &&
-      existing.payment_method_types[0] === 'card'
-    if (reusable.includes(existing.status) && existing.amount === amountCents && isCardOnly) {
+    if (reusable.includes(existing.status) && existing.amount === amountCents) {
       await admin.from('jobs').update({
         payment_status: 'awaiting_payment',
         stripe_payment_intent_id: existing.id,
@@ -126,17 +123,6 @@ async function handle(req: Request) {
         currency: 'cad',
       })
     }
-    if (reusable.includes(existing.status) && !isCardOnly) {
-      // Old intent was created with automatic_payment_methods (Affirm/Klarna/etc).
-      // Cancel it instead of continuing to serve BNPL options; a fresh card-only
-      // intent is created below.
-      try {
-        await stripe.paymentIntents.cancel(existing.id)
-      } catch {
-        // Already canceled or no longer cancelable; fall through and create a
-        // fresh card-only intent regardless.
-      }
-    }
   }
 
   const createParams: Record<string, unknown> = {
@@ -148,15 +134,12 @@ async function handle(req: Request) {
       org_id: mem.org_id,
       source: 'on_site',
     },
-    payment_method_types: ['card'],
+    automatic_payment_methods: { enabled: true },
   }
   if (customerEmail) createParams.receipt_email = customerEmail
 
   const intent = await stripe.paymentIntents.create(createParams, {
-    // Suffixed so this never collides with an idempotency key already used by a
-    // pre-card-only (automatic_payment_methods) create call for the same job/amount,
-    // which would otherwise make Stripe replay/reject against the old request body.
-    idempotencyKey: `onsite:${job.id}:${amountCents}:card`,
+    idempotencyKey: `onsite:${job.id}:${amountCents}`,
   })
 
   await admin.from('jobs').update({
