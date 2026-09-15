@@ -4,7 +4,7 @@ import {
   installHintCopy,
   isStandaloneDisplay,
   shouldShowInstallHint,
-} from './installHint'
+} from './installHintUtils'
 
 describe('install hint', () => {
   it('detects iOS and Android user agents', () => {
