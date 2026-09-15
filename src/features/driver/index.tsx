@@ -91,6 +91,9 @@ export default function DriverJobList() {
 
       {/* Job list */}
       <div className="flex-1 px-4 py-4 space-y-3 pb-safe">
+        {!loading && jobs.length > 0 && (
+          <p className="text-sm text-gray-500 -mt-1 mb-1">Tap a job to update status or collect payment.</p>
+        )}
         {loading ? (
           <p className="text-sm text-gray-500 text-center pt-10">Loading…</p>
         ) : jobs.length === 0 ? (
@@ -131,9 +134,7 @@ export default function DriverJobList() {
                     <span className={`text-sm font-medium px-3 py-1.5 rounded-full ${st}`}>
                       {STATUS_LABEL[j.status] ?? j.status}
                     </span>
-                    {!done && (
-                      <span className="text-gray-300 text-lg">›</span>
-                    )}
+                    <span className="text-gray-300 text-lg">›</span>
                   </div>
                 </div>
               </button>

@@ -4,7 +4,7 @@ import {
   installHintCopy,
   isStandaloneDisplay,
   shouldShowInstallHint,
-} from './installHint'
+} from './installHintUtils'
 
 const DISMISS_KEY = 'driver-install-hint-dismissed'
 
