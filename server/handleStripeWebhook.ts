@@ -6,8 +6,8 @@ import {
   chargeIdFromIntent,
   emailReceiptAndInvoiceCopy,
   markReceiptEmailed,
-} from './applyOnsitePayment'
-import type { Database } from '../src/shared/types/database'
+} from './applyOnsitePayment.js'
+import type { Database } from '../src/shared/types/database.js'
 
 export function requireTestStripeSecret(key: string | undefined): string {
   if (!key) throw new Error('STRIPE_SECRET_KEY is not set')
@@ -32,9 +32,9 @@ export function adminFromEnv() {
 }
 
 export async function handleStripeWebhook(rawBody: string, signature: string | undefined) {
+  if (!signature) throw new Error('Missing stripe-signature')
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET
   if (!webhookSecret) throw new Error('STRIPE_WEBHOOK_SECRET is not set')
-  if (!signature) throw new Error('Missing stripe-signature')
 
   const stripe = new Stripe(requireTestStripeSecret(process.env.STRIPE_SECRET_KEY))
   const event = stripe.webhooks.constructEvent(rawBody, signature, webhookSecret)
