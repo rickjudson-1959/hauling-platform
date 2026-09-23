@@ -1,7 +1,21 @@
 import Stripe from 'https://esm.sh/stripe@17.7.0?target=deno'
 
+/** Dashboard/Vercel pastes often include a trailing newline or wrapping quotes. */
+export function normalizeStripeEnvValue(value: string | undefined): string {
+  if (!value) return ''
+  let normalized = value.trim()
+  if (
+    normalized.length >= 2 &&
+    ((normalized.startsWith('"') && normalized.endsWith('"')) ||
+      (normalized.startsWith("'") && normalized.endsWith("'")))
+  ) {
+    normalized = normalized.slice(1, -1).trim()
+  }
+  return normalized
+}
+
 export function requireTestStripeSecret(): string {
-  const key = Deno.env.get('STRIPE_SECRET_KEY') ?? ''
+  const key = normalizeStripeEnvValue(Deno.env.get('STRIPE_SECRET_KEY'))
   if (!key) throw new Error('STRIPE_SECRET_KEY is not set')
   if (key.startsWith('sk_live') || key.startsWith('rk_live')) {
     throw new Error('Live Stripe keys are not allowed. Use the Hauling Stripe TEST secret.')
