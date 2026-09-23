@@ -34,6 +34,24 @@ describe('POST /api/stripe/webhook', () => {
     expect((await res.json()).error).toMatch(/signature/)
   })
 
+  it('returns 200 when the webhook secret has a trailing newline', async () => {
+    vi.stubEnv('STRIPE_WEBHOOK_SECRET', `${WEBHOOK_SECRET}\n`)
+    vi.stubEnv('STRIPE_SECRET_KEY', TEST_KEY)
+    const payload = JSON.stringify({
+      id: 'evt_test_trimmed',
+      object: 'event',
+      type: 'customer.created',
+      data: { object: { id: 'cus_test', object: 'customer' } },
+    })
+    const signature = new Stripe(TEST_KEY).webhooks.generateTestHeaderString({
+      payload,
+      secret: WEBHOOK_SECRET,
+    })
+    const res = await POST(webhookRequest(payload, signature))
+    expect(res.status).toBe(200)
+    expect(await res.json()).toEqual({ received: true, ignored: 'customer.created' })
+  })
+
   it('returns 200 JSON for a signed test event using the exact raw body', async () => {
     vi.stubEnv('STRIPE_WEBHOOK_SECRET', WEBHOOK_SECRET)
     vi.stubEnv('STRIPE_SECRET_KEY', TEST_KEY)

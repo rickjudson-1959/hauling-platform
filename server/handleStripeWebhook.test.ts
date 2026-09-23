@@ -19,9 +19,13 @@ describe('requireTestStripeSecret', () => {
   it('accepts Hauling test secrets and rejects live keys', () => {
     expect(requireTestStripeSecret('sk_test_abc')).toBe('sk_test_abc')
     expect(requireTestStripeSecret('rk_test_abc')).toBe('rk_test_abc')
+    expect(requireTestStripeSecret('  "sk_test_abc"\n')).toBe('sk_test_abc')
+    expect(requireTestStripeSecret("'rk_test_abc'\r\n")).toBe('rk_test_abc')
     expect(() => requireTestStripeSecret('sk_live_abc')).toThrow(/Live Stripe keys/)
     expect(() => requireTestStripeSecret('rk_live_abc')).toThrow(/Live Stripe keys/)
+    expect(() => requireTestStripeSecret('"sk_live_abc"\n')).toThrow(/Live Stripe keys/)
     expect(() => requireTestStripeSecret(undefined)).toThrow(/not set/)
+    expect(() => requireTestStripeSecret('  \n')).toThrow(/not set/)
     expect(() => requireTestStripeSecret('sk_not_a_mode')).toThrow(/sk_test_ or rk_test_/)
   })
 })
@@ -41,6 +45,36 @@ describe('handleStripeWebhook', () => {
     await expect(
       handleStripeWebhook('{"id":"evt_probe"}', 't=1720000000,v1=deadbeef'),
     ).rejects.toThrow(/signature/)
+  })
+
+  it('verifies a signed payload when the webhook secret has a trailing newline', async () => {
+    vi.stubEnv('STRIPE_WEBHOOK_SECRET', `${WEBHOOK_SECRET}\n`)
+    vi.stubEnv('STRIPE_SECRET_KEY', `${TEST_KEY}\n`)
+    const { payload, signature } = signedPayload({
+      id: 'evt_test_trimmed_newline',
+      object: 'event',
+      type: 'customer.created',
+      data: { object: { id: 'cus_test', object: 'customer' } },
+    })
+    await expect(handleStripeWebhook(payload, signature)).resolves.toEqual({
+      received: true,
+      ignored: 'customer.created',
+    })
+  })
+
+  it('verifies a signed payload when the webhook secret is wrapped in quotes', async () => {
+    vi.stubEnv('STRIPE_WEBHOOK_SECRET', `"${WEBHOOK_SECRET}"\n`)
+    vi.stubEnv('STRIPE_SECRET_KEY', `'${TEST_KEY}'`)
+    const { payload, signature } = signedPayload({
+      id: 'evt_test_trimmed_quotes',
+      object: 'event',
+      type: 'customer.created',
+      data: { object: { id: 'cus_test', object: 'customer' } },
+    })
+    await expect(handleStripeWebhook(payload, signature)).resolves.toEqual({
+      received: true,
+      ignored: 'customer.created',
+    })
   })
 
   it('acknowledges a signed test event that is not an on-site payment', async () => {

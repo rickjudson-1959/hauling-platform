@@ -9,15 +9,30 @@ import {
 } from './applyOnsitePayment.js'
 import type { Database } from '../src/shared/types/database.js'
 
+/** Vercel env pastes often include a trailing newline or wrapping quotes. */
+export function normalizeStripeEnvValue(value: string | undefined): string {
+  if (!value) return ''
+  let normalized = value.trim()
+  if (
+    normalized.length >= 2 &&
+    ((normalized.startsWith('"') && normalized.endsWith('"')) ||
+      (normalized.startsWith("'") && normalized.endsWith("'")))
+  ) {
+    normalized = normalized.slice(1, -1).trim()
+  }
+  return normalized
+}
+
 export function requireTestStripeSecret(key: string | undefined): string {
-  if (!key) throw new Error('STRIPE_SECRET_KEY is not set')
-  if (key.startsWith('sk_live') || key.startsWith('rk_live')) {
+  const normalized = normalizeStripeEnvValue(key)
+  if (!normalized) throw new Error('STRIPE_SECRET_KEY is not set')
+  if (normalized.startsWith('sk_live') || normalized.startsWith('rk_live')) {
     throw new Error('Live Stripe keys are not allowed. Use the Hauling Stripe TEST secret.')
   }
-  if (!key.startsWith('sk_test') && !key.startsWith('rk_test')) {
+  if (!normalized.startsWith('sk_test') && !normalized.startsWith('rk_test')) {
     throw new Error('STRIPE_SECRET_KEY must be a Hauling Stripe TEST key (sk_test_ or rk_test_).')
   }
-  return key
+  return normalized
 }
 
 export function adminFromEnv() {
@@ -33,7 +48,7 @@ export function adminFromEnv() {
 
 export async function handleStripeWebhook(rawBody: string, signature: string | undefined) {
   if (!signature) throw new Error('Missing stripe-signature')
-  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET
+  const webhookSecret = normalizeStripeEnvValue(process.env.STRIPE_WEBHOOK_SECRET)
   if (!webhookSecret) throw new Error('STRIPE_WEBHOOK_SECRET is not set')
 
   const stripe = new Stripe(requireTestStripeSecret(process.env.STRIPE_SECRET_KEY))

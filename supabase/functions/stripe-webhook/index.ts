@@ -7,7 +7,7 @@ import {
   emailReceiptAndInvoiceCopy,
   markReceiptEmailed,
 } from '../_shared/apply-onsite-payment.ts'
-import { Stripe, stripeClient } from '../_shared/stripe.ts'
+import { Stripe, normalizeStripeEnvValue, stripeClient } from '../_shared/stripe.ts'
 
 function adminClient() {
   return createClient(
@@ -21,7 +21,7 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { status: 200 })
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405)
 
-  const webhookSecret = Deno.env.get('STRIPE_WEBHOOK_SECRET') ?? ''
+  const webhookSecret = normalizeStripeEnvValue(Deno.env.get('STRIPE_WEBHOOK_SECRET'))
   if (!webhookSecret) return json({ error: 'STRIPE_WEBHOOK_SECRET is not set' }, 500)
 
   const signature = req.headers.get('stripe-signature')
